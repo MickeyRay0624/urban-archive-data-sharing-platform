@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>系统设置</title>
+    <link rel="stylesheet" href="/css/nav-dropdown.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei'; background-color: #f5f7fa; }
+        .header { background: #4a5f70; color: white; padding: 15px 30px; display: flex; justify-content: space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .logo { font-size: 24px; font-weight: bold; }
+        .nav { display: flex; gap: 30px; }
+        .nav a { color: white; text-decoration: none; padding: 10px 15px; border-radius: 5px; transition: background-color 0.3s; }
+        .nav a:hover, .nav a.active { background-color: rgba(255, 255, 255, 0.2); }
+        .main-content { padding: 30px; max-width: 800px; margin: 0 auto; }
+        .setting-card { background: white; border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .setting-title { font-size: 20px; color: #2c3e50; margin-bottom: 20px; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #2c3e50; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; }
+        .btn-primary { background-color: #3498db; color: white; }
+        .btn-primary:hover { background-color: #2980b9; }
+        .btn-danger { background-color: #e74c3c; color: white; text-decoration: none; display: inline-block; }
+        .btn-danger:hover { background-color: #c0392b; }
+        .alert { padding: 10px 15px; border-radius: 5px; margin-bottom: 15px; }
+        .alert-success { background-color: #d4edda; color: #155724; }
+        .alert-error { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">协同共享服务系统</div>
+        <nav class="nav">
+            <a th:unless="${isExternalDepartment}" href="/">首页</a>
+            <a th:unless="${isExternalDepartment}" href="/todo-items">审批管理</a>
+            <div class="nav-item nav-dropdown" th:unless="${isExternalDepartment}">
+                <a href="/data-elements/business" class="nav-link">数据要素管理</a>
+                <div class="dropdown-menu">
+                    <a href="/data-elements/business" class="dropdown-link">业务数据</a>
+                    <a href="/data-elements/metadata" class="dropdown-link">业务元数据</a>
+                    <a href="/data-elements/service-instance" class="dropdown-link">服务实例数据</a>
+                    <a href="/data-elements/log" class="dropdown-link">日志数据</a>
+                </div>
+            </div>
+            <a href="/service-components">服务组件管理</a>
+            <a th:unless="${isExternalDepartment}" href="/monitoring">监控运维</a>
+            <a th:unless="${isExternalDepartment}" href="/security">安全防护</a>
+            <a href="/settings" class="active">设置</a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+        
+        <!-- 密码修改 -->
+        <div class="setting-card">
+            <div class="setting-title">修改密码</div>
+            <form id="passwordForm">
+                <div class="form-group">
+                    <label>旧密码</label>
+                    <input type="password" id="oldPassword" required>
+                </div>
+                <div class="form-group">
+                    <label>新密码</label>
+                    <input type="password" id="newPassword" required>
+                </div>
+                <div class="form-group">
+                    <label>确认新密码</label>
+                    <input type="password" id="confirmPassword" required>
+                </div>
+                <button type="submit" class="btn btn-primary">修改密码</button>
+            </form>
+        </div>
+
+        <!-- 背景图片上传 -->
+        <div class="setting-card" th:unless="${isExternalDepartment}">
+            <div class="setting-title">背景图片设置</div>
+            <form action="/settings/upload-background" method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label>选择背景图片</label>
+                    <input type="file" name="backgroundImage" accept="image/*" required>
+                </div>
+                <button type="submit" class="btn btn-primary">上传背景图片</button>
+            </form>
+            <div th:if="${backgroundImage}" style="margin-top: 20px;">
+                <p style="color: #7f8c8d; margin-bottom: 10px;">当前背景图片：</p>
+                <img th:src="@{'/uploads/' + ${backgroundImage}}" style="max-width: 100%; border-radius: 5px;" alt="背景图片">
+            </div>
+        </div>
+
+        <div class="setting-card">
+            <div class="setting-title">账号操作</div>
+            <a href="/logout" class="btn btn-danger">退出登录</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('passwordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const oldPassword = document.getElementById('oldPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (newPassword !== confirmPassword) {
+                alert('两次输入的新密码不一致');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('oldPassword', oldPassword);
+            formData.append('newPassword', newPassword);
+            formData.append('confirmPassword', confirmPassword);
+            
+            fetch('/settings/change-password', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    document.getElementById('passwordForm').reset();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                alert('请求失败：' + error);
+            });
+        });
+    </script>
+</body>
+</html>
+

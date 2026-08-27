@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.collaborative.sharing.mapper.DataElementUploadBatchMapper">
+
+    <resultMap id="BatchResultMap" type="com.collaborative.sharing.entity.DataElementUploadBatch">
+        <id column="id" property="id"/>
+        <result column="data_type" property="dataType"/>
+        <result column="batch_name" property="batchName"/>
+        <result column="original_file_name" property="originalFileName"/>
+        <result column="stored_file_path" property="storedFilePath"/>
+        <result column="file_hash" property="fileHash"/>
+        <result column="file_size" property="fileSize"/>
+        <result column="uploader" property="uploader"/>
+        <result column="upload_time" property="uploadTime"/>
+        <result column="total_rows" property="totalRows"/>
+        <result column="business_record_count" property="businessRecordCount"/>
+        <result column="recognized_columns" property="recognizedColumns"/>
+        <result column="unrecognized_columns" property="unrecognizedColumns"/>
+        <result column="involved_subtypes" property="involvedSubtypes"/>
+        <result column="duplicate_of_batch_id" property="duplicateOfBatchId"/>
+        <result column="import_policy" property="importPolicy"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.collaborative.sharing.entity.DataElementUploadBatch" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO data_element_upload_batch
+            (data_type, batch_name, original_file_name, stored_file_path, file_hash, file_size,
+             uploader, upload_time, total_rows, business_record_count,
+             recognized_columns, unrecognized_columns, involved_subtypes,
+             duplicate_of_batch_id, import_policy, created_at, updated_at)
+        VALUES
+            (#{dataType}, #{batchName}, #{originalFileName}, #{storedFilePath}, #{fileHash}, #{fileSize},
+             #{uploader}, #{uploadTime}, #{totalRows}, #{businessRecordCount},
+             #{recognizedColumns}, #{unrecognizedColumns}, #{involvedSubtypes},
+             #{duplicateOfBatchId}, #{importPolicy}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <update id="update" parameterType="com.collaborative.sharing.entity.DataElementUploadBatch">
+        UPDATE data_element_upload_batch
+        SET total_rows = #{totalRows},
+            business_record_count = #{businessRecordCount},
+            recognized_columns = #{recognizedColumns},
+            unrecognized_columns = #{unrecognizedColumns},
+            involved_subtypes = #{involvedSubtypes},
+            data_type = #{dataType},
+            updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+
+    <select id="findById" parameterType="long" resultMap="BatchResultMap">
+        SELECT * FROM data_element_upload_batch WHERE id = #{id}
+    </select>
+
+    <select id="findByFileHash" parameterType="string" resultMap="BatchResultMap">
+        SELECT * FROM data_element_upload_batch WHERE file_hash = #{fileHash} LIMIT 1
+    </select>
+
+    <select id="findByFileHashAndDataType" resultMap="BatchResultMap">
+        SELECT * FROM data_element_upload_batch
+        WHERE file_hash = #{fileHash}
+          AND data_type = #{dataType}
+        LIMIT 1
+    </select>
+
+    <select id="findAll" resultMap="BatchResultMap">
+        SELECT * FROM data_element_upload_batch ORDER BY upload_time DESC
+    </select>
+
+    <select id="findRecent" resultMap="BatchResultMap">
+        SELECT * FROM data_element_upload_batch ORDER BY upload_time DESC LIMIT #{limit}
+    </select>
+
+    <select id="findRecentByType" resultMap="BatchResultMap">
+        SELECT * FROM data_element_upload_batch
+        WHERE data_type = #{dataType}
+        ORDER BY upload_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="findByPage" resultMap="BatchResultMap">
+        SELECT * FROM data_element_upload_batch
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND original_file_name LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test="uploader != null and uploader != ''">
+                AND uploader = #{uploader}
+            </if>
+            <if test="startTime != null and startTime != ''">
+                AND upload_time >= #{startTime}
+            </if>
+            <if test="endTime != null and endTime != ''">
+                AND upload_time &lt;= #{endTime}
+            </if>
+            <if test="subtype != null and subtype != ''">
+                AND involved_subtypes LIKE CONCAT('%', #{subtype}, '%')
+            </if>
+            <if test="isDuplicate != null and isDuplicate == true">
+                AND duplicate_of_batch_id IS NOT NULL
+            </if>
+            <if test="isDuplicate != null and isDuplicate == false">
+                AND duplicate_of_batch_id IS NULL
+            </if>
+        </where>
+        ORDER BY upload_time DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="findByPageByType" resultMap="BatchResultMap">
+        SELECT * FROM data_element_upload_batch
+        <where>
+            AND data_type = #{dataType}
+            <if test="keyword != null and keyword != ''">
+                AND original_file_name LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test="uploader != null and uploader != ''">
+                AND uploader = #{uploader}
+            </if>
+            <if test="startTime != null and startTime != ''">
+                AND upload_time >= #{startTime}
+            </if>
+            <if test="endTime != null and endTime != ''">
+                AND upload_time &lt;= #{endTime}
+            </if>
+            <if test="subtype != null and subtype != ''">
+                AND involved_subtypes LIKE CONCAT('%', #{subtype}, '%')
+            </if>
+            <if test="isDuplicate != null and isDuplicate == true">
+                AND duplicate_of_batch_id IS NOT NULL
+            </if>
+            <if test="isDuplicate != null and isDuplicate == false">
+                AND duplicate_of_batch_id IS NULL
+            </if>
+        </where>
+        ORDER BY upload_time DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countByPage" resultType="int">
+        SELECT COUNT(*) FROM data_element_upload_batch
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND original_file_name LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test="uploader != null and uploader != ''">
+                AND uploader = #{uploader}
+            </if>
+            <if test="startTime != null and startTime != ''">
+                AND upload_time >= #{startTime}
+            </if>
+            <if test="endTime != null and endTime != ''">
+                AND upload_time &lt;= #{endTime}
+            </if>
+            <if test="subtype != null and subtype != ''">
+                AND involved_subtypes LIKE CONCAT('%', #{subtype}, '%')
+            </if>
+            <if test="isDuplicate != null and isDuplicate == true">
+                AND duplicate_of_batch_id IS NOT NULL
+            </if>
+            <if test="isDuplicate != null and isDuplicate == false">
+                AND duplicate_of_batch_id IS NULL
+            </if>
+        </where>
+    </select>
+
+    <select id="countByPageByType" resultType="int">
+        SELECT COUNT(*) FROM data_element_upload_batch
+        <where>
+            AND data_type = #{dataType}
+            <if test="keyword != null and keyword != ''">
+                AND original_file_name LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test="uploader != null and uploader != ''">
+                AND uploader = #{uploader}
+            </if>
+            <if test="startTime != null and startTime != ''">
+                AND upload_time >= #{startTime}
+            </if>
+            <if test="endTime != null and endTime != ''">
+                AND upload_time &lt;= #{endTime}
+            </if>
+            <if test="subtype != null and subtype != ''">
+                AND involved_subtypes LIKE CONCAT('%', #{subtype}, '%')
+            </if>
+            <if test="isDuplicate != null and isDuplicate == true">
+                AND duplicate_of_batch_id IS NOT NULL
+            </if>
+            <if test="isDuplicate != null and isDuplicate == false">
+                AND duplicate_of_batch_id IS NULL
+            </if>
+        </where>
+    </select>
+
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM data_element_upload_batch WHERE id = #{id}
+    </delete>
+</mapper>

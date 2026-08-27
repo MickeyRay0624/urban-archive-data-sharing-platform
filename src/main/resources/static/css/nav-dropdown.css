@@ -1,0 +1,106 @@
+.nav {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+}
+
+.nav .nav-item {
+    position: relative;
+}
+
+.nav .nav-dropdown {
+    display: flex;
+    align-items: center;
+}
+
+.nav .nav-dropdown::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: -10px;
+    right: -10px;
+    height: 16px;
+    z-index: 1199;
+}
+
+.nav .nav-link {
+    color: #ffffff;
+    text-decoration: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.nav .nav-link:hover,
+.nav .nav-link.active {
+    background-color: rgba(255,255,255,0.2);
+}
+
+.nav .dropdown-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%) translateY(6px);
+    min-width: 180px;
+    background: #ffffff;
+    border: 1px solid rgba(74,95,112,0.12);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    padding: 6px 0;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
+    z-index: 1200;
+}
+
+.nav .dropdown-menu::before {
+    content: "";
+    position: absolute;
+    top: -7px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    width: 14px;
+    height: 14px;
+    background: #ffffff;
+    border-left: 1px solid rgba(74,95,112,0.12);
+    border-top: 1px solid rgba(74,95,112,0.12);
+}
+
+.nav .nav-dropdown:hover .dropdown-menu,
+.nav .nav-dropdown:focus-within .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+}
+
+.nav .dropdown-menu .dropdown-link {
+    display: block;
+    color: #2c3e50;
+    background: transparent;
+    padding: 12px 18px;
+    border-radius: 0;
+    font-size: 14px;
+    line-height: 1.4;
+    white-space: nowrap;
+    text-align: center;
+    border-bottom: 1px solid #edf0f2;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease, font-weight 0.2s ease;
+}
+
+.nav .dropdown-menu .dropdown-link:last-child {
+    border-bottom: none;
+}
+
+.nav .dropdown-menu .dropdown-link:hover {
+    background: #f5f7fa;
+    color: #3498db;
+}
+
+.nav .dropdown-menu .dropdown-link.active {
+    background: #eef6fc;
+    color: #2980b9;
+    font-weight: 600;
+}

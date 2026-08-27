@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>数据详情 - 协同共享服务系统</title>
+    <link rel="stylesheet" href="/css/nav-dropdown.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei'; background-color: #f5f7fa; }
+        .header { background: #4a5f70; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .logo { font-size: 24px; font-weight: bold; }
+        .nav a { color: white; text-decoration: none; padding: 10px 15px; border-radius: 5px; transition: background-color 0.3s; }
+        .nav a:hover, .nav a.active { background-color: rgba(255, 255, 255, 0.2); }
+        .main-content { padding: 30px; max-width: 1100px; margin: 0 auto; }
+        .detail-card { background: white; border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .detail-title { font-size: 24px; color: #2c3e50; margin-bottom: 20px; }
+        .detail-row { margin-bottom: 12px; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+        .detail-label { font-weight: bold; color: #7f8c8d; display: inline-block; width: 120px; }
+        .detail-value { color: #2c3e50; }
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; margin-right: 10px; text-decoration: none; display: inline-block; }
+        .btn-secondary { background-color: #95a5a6; color: white; }
+        .btn-primary { background-color: #3498db; color: white; }
+        .table-container { margin-top: 20px; overflow-x: auto; }
+        .table { width: 100%; border-collapse: collapse; }
+        .table th { background-color: #f8f9fa; color: #2c3e50; font-weight: 600; padding: 10px; text-align: left; font-size: 13px; border-bottom: 2px solid #dee2e6; white-space: nowrap; }
+        .table td { padding: 10px; border-bottom: 1px solid #e9ecef; color: #495057; font-size: 13px; }
+        .section-title { margin-top: 24px; margin-bottom: 12px; font-size: 16px; font-weight: 600; color: #2c3e50; border-left: 4px solid #3498db; padding-left: 10px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">协同共享服务系统</div>
+        <nav class="nav">
+            <a th:unless="${isExternalDepartment}" href="/">首页</a>
+            <a th:unless="${isExternalDepartment}" href="/todo-items">审批管理</a>
+            <div class="nav-item nav-dropdown" th:unless="${isExternalDepartment}">
+                <a href="/data-elements/business" class="nav-link active">数据要素管理</a>
+                <div class="dropdown-menu">
+                    <a href="/data-elements/business" class="dropdown-link active">业务数据</a>
+                    <a href="/data-elements/metadata" class="dropdown-link">业务元数据</a>
+                    <a href="/data-elements/service-instance" class="dropdown-link">服务实例数据</a>
+                    <a href="/data-elements/log" class="dropdown-link">日志数据</a>
+                </div>
+            </div>
+            <a href="/service-components">服务组件管理</a>
+            <a th:unless="${isExternalDepartment}" href="/monitoring">监控运维</a>
+            <a th:unless="${isExternalDepartment}" href="/security">安全防护</a>
+            <a href="/settings">设置</a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <div class="detail-card">
+            <div class="detail-title">上传批次详情</div>
+            <div class="detail-row" th:if="${batch}">
+                <span class="detail-label">批次名称：</span>
+                <span class="detail-value" th:text="${batch.batchName}">-</span>
+            </div>
+            <div class="detail-row" th:if="${batch}">
+                <span class="detail-label">文件名称：</span>
+                <span class="detail-value" th:text="${batch.originalFileName}">-</span>
+            </div>
+            <div class="detail-row" th:if="${batch}">
+                <span class="detail-label">上传人：</span>
+                <span class="detail-value" th:text="${batch.uploader}">-</span>
+            </div>
+            <div class="detail-row" th:if="${batch}">
+                <span class="detail-label">上传时间：</span>
+                <span class="detail-value" th:text="${#temporals.format(batch.uploadTime, 'yyyy-MM-dd HH:mm:ss')}">-</span>
+            </div>
+            <div class="detail-row" th:if="${batch}">
+                <span class="detail-label">总行数：</span>
+                <span class="detail-value" th:text="${batch.totalRows}">-</span>
+            </div>
+            <div class="detail-row" th:if="${batch}">
+                <span class="detail-label">识别字段：</span>
+                <span class="detail-value" th:text="${batch.recognizedColumns}">-</span>
+            </div>
+            <div class="detail-row" th:if="${batch && batch.unrecognizedColumns != null and !batch.unrecognizedColumns.isEmpty()}">
+                <span class="detail-label">未识别字段：</span>
+                <span class="detail-value" th:text="${batch.unrecognizedColumns}">-</span>
+            </div>
+            <div class="detail-row" th:if="${batch}">
+                <span class="detail-label">涉及子类：</span>
+                <span class="detail-value" th:text="${batch.involvedSubtypes}">-</span>
+            </div>
+
+            <div class="section-title">导入记录列表</div>
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>行号</th>
+                            <th>数据子类</th>
+                            <th>显示标题</th>
+                            <th>关联工程ID</th>
+                            <th>记录数据</th>
+                            <th>扩展字段</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="rec : ${records}">
+                            <td th:text="${rec.rowIndex}">1</td>
+                            <td th:text="${rec.dataSubtype}">工程基本信息</td>
+                            <td th:text="${rec.displayName}">-</td>
+                            <td th:text="${rec.projectId}" style="font-size:12px;">-</td>
+                            <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;" th:text="${rec.recordJson}">-</td>
+                            <td th:if="${rec.extraJson != null and rec.extraJson != '{}'}" style="font-size:12px;color:#e67e22;" th:text="${rec.extraJson}">-</td>
+                            <td th:unless="${rec.extraJson != null and rec.extraJson != '{}'}" style="font-size:12px;">-</td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(records)}">
+                            <td colspan="6" style="text-align:center;color:#999;">暂无记录</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <a href="/data-elements/business" class="btn btn-secondary">返回列表</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

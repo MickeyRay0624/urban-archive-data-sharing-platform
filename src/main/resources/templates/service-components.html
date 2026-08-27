@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>服务组件管理 - 协同共享服务系统</title>
+    <link rel="stylesheet" href="/css/nav-dropdown.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background-color: #f5f7fa;
+        }
+
+        .header {
+            background: #4a5f70;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .nav {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .nav a:hover, .nav a.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+
+        .module-note {
+            background: #eef5fb;
+            border: 1px solid #d7e6f3;
+            color: #38556b;
+            border-radius: 4px;
+            padding: 12px 16px;
+            margin-bottom: 22px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .department-tag {
+            display: inline-block;
+            background: #ecf0f1;
+            color: #34495e;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            margin-left: 12px;
+            vertical-align: middle;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid #3498db;
+            color: #3498db;
+        }
+
+        .btn-outline:hover {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .btn-gray {
+            background-color: transparent;
+            border: 2px solid #95a5a6;
+            color: #95a5a6;
+        }
+
+        .btn-gray:hover {
+            background-color: #95a5a6;
+            color: white;
+        }
+
+        .btn-success {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #219a52;
+        }
+
+        .btn-warning {
+            background-color: #f39c12;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background-color: #d68910;
+        }
+
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
+        .btn-sm {
+            padding: 5px 12px;
+            font-size: 12px;
+        }
+
+        .btn-xs {
+            padding: 3px 8px;
+            font-size: 10px;
+        }
+
+        .services-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .service-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+
+        .service-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .service-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .service-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-draft {
+            background-color: #e2e3e5;
+            color: #6c757d;
+        }
+
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-published {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-authorized {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-offline {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .service-info {
+            margin-bottom: 15px;
+        }
+
+        .info-row {
+            display: flex;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        .info-label {
+            color: #7f8c8d;
+            width: 80px;
+            flex-shrink: 0;
+        }
+
+        .info-value {
+            color: #2c3e50;
+            flex: 1;
+            word-break: break-all;
+        }
+
+        .service-description {
+            color: #7f8c8d;
+            margin-bottom: 15px;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .service-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .service-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .process-section {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .process-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .process-flow {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 720px;
+        }
+
+        .process-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            flex: 1;
+        }
+
+        .step-icon {
+            width: 60px;
+            height: 60px;
+            background: #4a5f70;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .step-text {
+            color: #2c3e50;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .arrow {
+            color: #95a5a6;
+            font-size: 20px;
+            margin: 0 10px;
+        }
+
+        /* 模态框样式 */
+        .modal { 
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0; 
+            top: 0; 
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.4); 
+        }
+        .modal-content { 
+            background-color: white; 
+            margin: 3% auto; 
+            padding: 24px; 
+            border-radius: 8px; 
+            width: 560px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .modal-content-large {
+            width: 640px;
+        }
+        .modal-header { 
+            font-size: 18px; 
+            font-weight: 600; 
+            margin-bottom: 20px;
+            color: #2c3e50;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 12px;
+        }
+        .form-group { 
+            margin-bottom: 16px; 
+        }
+        .form-group label { 
+            display: block; 
+            margin-bottom: 6px; 
+            font-weight: 500; 
+            color: #555; 
+            font-size: 13px; 
+        }
+        .form-group input, .form-group textarea, .form-group select { 
+            width: 100%; 
+            padding: 8px 12px; 
+            border: 1px solid #d0d0d0; 
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        .form-group textarea { 
+            resize: vertical; 
+            min-height: 80px; 
+        }
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+        .form-row .form-group {
+            flex: 1;
+        }
+        .modal-footer { 
+            display: flex; 
+            justify-content: flex-end; 
+            gap: 8px; 
+            margin-top: 20px; 
+        }
+        .empty-tip {
+            text-align: center;
+            color: #95a5a6;
+            padding: 60px 20px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">协同共享服务系统</div>
+        <nav class="nav">
+            <a th:unless="${isExternalDepartment}" href="/">首页</a>
+            <a th:unless="${isExternalDepartment}" href="/todo-items">审批管理</a>
+            <div class="nav-item nav-dropdown" th:unless="${isExternalDepartment}">
+                <a href="/data-elements/business" class="nav-link">数据要素管理</a>
+                <div class="dropdown-menu">
+                    <a href="/data-elements/business" class="dropdown-link">业务数据</a>
+                    <a href="/data-elements/metadata" class="dropdown-link">业务元数据</a>
+                    <a href="/data-elements/service-instance" class="dropdown-link">服务实例数据</a>
+                    <a href="/data-elements/log" class="dropdown-link">日志数据</a>
+                </div>
+            </div>
+            <a href="/service-components" class="active">服务组件管理</a>
+            <a th:unless="${isExternalDepartment}" href="/monitoring">监控运维</a>
+            <a th:unless="${isExternalDepartment}" href="/security">安全防护</a>
+            <a href="/settings">设置</a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">
+                协同共享服务组件管理
+                <span th:if="${isExternalDepartment}" class="department-tag" th:text="'当前部门：' + ${currentDepartment}">当前部门</span>
+            </h1>
+            <button class="btn btn-primary" onclick="openCreateModal()">
+                <span>+</span>
+                <span th:text="${isExternalDepartment} ? '提交服务申请' : '注册新服务'">注册新服务</span>
+            </button>
+        </div>
+        <div class="module-note" th:if="${isExternalDepartment}">
+            本模块面向外部协同部门，用于登记本部门服务申请、查看服务状态和调用授权情况；数据导入和数据子类维护由城建档案局在数据要素管理模块处理。
+        </div>
+        <div class="module-note" th:unless="${isExternalDepartment}">
+            本模块面向外部部门服务协同，管理员可处理服务注册、发布、授权、配置和下架等管理事项。
+        </div>
+
+        <div class="services-container" th:if="${#lists.size(serviceComponents) > 0}">
+            <div th:each="service : ${serviceComponents}" class="service-card">
+                <div class="service-header">
+                    <div class="service-name" th:text="${service.serviceName}">服务名称</div>
+                    <!-- 状态徽章 - 根据状态显示不同颜色 -->
+                    <span class="status-badge status-draft"
+                          th:if="${service.status.name() == 'DRAFT'}"
+                          th:text="${service.status.displayName}">草稿</span>
+                    <span class="status-badge status-pending"
+                          th:if="${service.status.name() == 'PENDING_APPROVAL'}"
+                          th:text="${service.status.displayName}">待审批</span>
+                    <span class="status-badge status-published"
+                          th:if="${service.status.name() == 'PUBLISHED'}"
+                          th:text="${service.status.displayName}">已发布</span>
+                    <span class="status-badge status-authorized"
+                          th:if="${service.status.name() == 'AUTHORIZED'}"
+                          th:text="${service.status.displayName}">已授权</span>
+                    <span class="status-badge status-offline"
+                          th:if="${service.status.name() == 'OFFLINE'}"
+                          th:text="${service.status.displayName}">已下架</span>
+                </div>
+
+                <div class="service-info">
+                    <div class="info-row" th:if="${service.serviceCode}">
+                        <span class="info-label">服务编码：</span>
+                        <span class="info-value" th:text="${service.serviceCode}">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">版本：</span>
+                        <span class="info-value" th:text="${service.version}">-</span>
+                    </div>
+                    <div class="info-row" th:if="${service.ownerDepartment}">
+                        <span class="info-label">所属部门：</span>
+                        <span class="info-value" th:text="${service.ownerDepartment}">-</span>
+                    </div>
+                    <div class="info-row" th:if="${service.apiUrl}">
+                        <span class="info-label">接口地址：</span>
+                        <span class="info-value" th:text="${service.apiUrl}">-</span>
+                    </div>
+                    <div class="info-row" th:if="${service.securityLevel}">
+                        <span class="info-label">安全等级：</span>
+                        <span class="info-value" th:text="${service.securityLevel}">-</span>
+                    </div>
+                    <div class="info-row" th:if="${service.authorizedUnits}">
+                        <span class="info-label">授权单位：</span>
+                        <span class="info-value" th:text="${service.authorizedUnits}">-</span>
+                    </div>
+                    <div class="service-description" th:if="${service.description}">
+                        <span style="color:#7f8c8d;">描述：</span><span th:text="${service.description}"></span>
+                    </div>
+                    <div class="info-row" th:if="${service.remark}">
+                        <span class="info-label">备注：</span>
+                        <span class="info-value" th:text="${service.remark}">-</span>
+                    </div>
+                </div>
+
+                <div class="service-footer">
+                    <div class="version" th:text="'创建时间: ' + ${#temporals.format(service.createdAt, 'yyyy-MM-dd')}">-</div>
+                    <div class="service-actions">
+                        <!-- DRAFT -->
+                        <button th:if="${service.status.name() == 'DRAFT' and (!isExternalDepartment or service.ownerDepartment == currentDepartment)}"
+                                class="btn btn-outline btn-sm" th:onclick="'editService(' + ${service.id} + ')'">编辑</button>
+                        <button th:if="${service.status.name() == 'DRAFT' and (!isExternalDepartment or service.ownerDepartment == currentDepartment)}"
+                                class="btn btn-warning btn-sm" th:onclick="'submitApproval(' + ${service.id} + ')'">提交审批</button>
+                        <button th:if="${service.status.name() == 'DRAFT' and (!isExternalDepartment or service.ownerDepartment == currentDepartment)}"
+                                class="btn btn-danger btn-sm" th:onclick="'deleteService(' + ${service.id} + ')'">删除</button>
+                        <!-- PENDING_APPROVAL -->
+                        <button th:if="${service.status.name() == 'PENDING_APPROVAL' and (!isExternalDepartment or service.ownerDepartment == currentDepartment)}"
+                                class="btn btn-outline btn-sm" th:onclick="'editService(' + ${service.id} + ')'">编辑</button>
+                        <button th:if="${service.status.name() == 'PENDING_APPROVAL' and !isExternalDepartment}"
+                                class="btn btn-success btn-sm" th:onclick="'publishService(' + ${service.id} + ')'">发布</button>
+                        <button th:if="${service.status.name() == 'PENDING_APPROVAL' and !isExternalDepartment}"
+                                class="btn btn-gray btn-sm" th:onclick="'offlineService(' + ${service.id} + ')'">下架</button>
+                        <!-- PUBLISHED -->
+                        <button th:if="${service.status.name() == 'PUBLISHED' and !isExternalDepartment}"
+                                class="btn btn-outline btn-sm" th:onclick="'authorizeService(' + ${service.id} + ')'">授权</button>
+                        <button th:if="${service.status.name() == 'PUBLISHED' and !isExternalDepartment}"
+                                class="btn btn-primary btn-sm" th:onclick="'configService(' + ${service.id} + ')'">配置</button>
+                        <button th:if="${service.status.name() == 'PUBLISHED' and !isExternalDepartment}"
+                                class="btn btn-gray btn-sm" th:onclick="'offlineService(' + ${service.id} + ')'">下架</button>
+                        <!-- AUTHORIZED -->
+                        <button th:if="${service.status.name() == 'AUTHORIZED' and !isExternalDepartment}"
+                                class="btn btn-primary btn-sm" th:onclick="'configService(' + ${service.id} + ')'">配置</button>
+                        <button th:if="${service.status.name() == 'AUTHORIZED' and !isExternalDepartment}"
+                                class="btn btn-gray btn-sm" th:onclick="'offlineService(' + ${service.id} + ')'">下架</button>
+                        <!-- OFFLINE -->
+                        <button th:if="${service.status.name() == 'OFFLINE' and (!isExternalDepartment or service.ownerDepartment == currentDepartment)}"
+                                class="btn btn-outline btn-sm" th:onclick="'editService(' + ${service.id} + ')'">编辑</button>
+                        <button th:if="${service.status.name() == 'OFFLINE' and !isExternalDepartment}"
+                                class="btn btn-success btn-sm" th:onclick="'publishService(' + ${service.id} + ')'">发布</button>
+                        <button th:if="${service.status.name() == 'OFFLINE' and (!isExternalDepartment or service.ownerDepartment == currentDepartment)}"
+                                class="btn btn-danger btn-sm" th:onclick="'deleteService(' + ${service.id} + ')'">删除</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="empty-tip" th:unless="${#lists.size(serviceComponents) > 0}">
+            <span th:text="${isExternalDepartment} ? '暂无本部门服务申请' : '暂无服务组件，请点击注册新服务创建'">暂无服务组件</span>
+        </div>
+
+        <div class="process-section">
+            <h3 class="process-title">服务注册流程</h3>
+            <div class="process-flow">
+                <div class="process-step">
+                    <div class="step-icon">📝</div>
+                    <div class="step-text">注册</div>
+                </div>
+                <div class="arrow">→</div>
+                <div class="process-step">
+                    <div class="step-icon">📋</div>
+                    <div class="step-text">提交审批</div>
+                </div>
+                <div class="arrow">→</div>
+                <div class="process-step">
+                    <div class="step-icon">🚀</div>
+                    <div class="step-text">发布</div>
+                </div>
+                <div class="arrow">→</div>
+                <div class="process-step">
+                    <div class="step-icon">🔑</div>
+                    <div class="step-text">授权</div>
+                </div>
+                <div class="arrow">→</div>
+                <div class="process-step">
+                    <div class="step-icon">⚙️</div>
+                    <div class="step-text">调用/配置</div>
+                </div>
+                <div class="arrow">→</div>
+                <div class="process-step">
+                    <div class="step-icon">⏹️</div>
+                    <div class="step-text">下架</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增/编辑服务模态框 -->
+    <div id="serviceModal" class="modal">
+        <div class="modal-content modal-content-large">
+            <div class="modal-header" id="serviceModalTitle">注册新服务</div>
+            <form id="serviceForm">
+                <input type="hidden" id="s_id" value="">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>服务名称 *</label>
+                        <input type="text" id="s_serviceName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>服务编码 *</label>
+                        <input type="text" id="s_serviceCode" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>版本 *</label>
+                        <input type="text" id="s_version" required>
+                    </div>
+                    <div class="form-group">
+                        <label>所属部门</label>
+                        <input type="text" id="s_ownerDepartment" th:readonly="${isExternalDepartment}" th:value="${isExternalDepartment ? currentDepartment : ''}">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>接口地址</label>
+                        <input type="text" id="s_apiUrl" placeholder="例如：/api/archive/query">
+                    </div>
+                    <div class="form-group">
+                        <label>安全等级</label>
+                        <select id="s_securityLevel">
+                            <option value="">请选择</option>
+                            <option value="公开">公开</option>
+                            <option value="内部">内部</option>
+                            <option value="敏感">敏感</option>
+                            <option value="重要">重要</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group" th:unless="${isExternalDepartment}">
+                    <label>授权单位</label>
+                    <input type="text" id="s_authorizedUnits" placeholder="多个单位用逗号分隔，如：不动产登记服务中心、住建局">
+                </div>
+                <div class="form-group">
+                    <label>服务描述</label>
+                    <textarea id="s_description"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>备注</label>
+                    <textarea id="s_remark"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-gray" onclick="closeServiceModal()">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="submitService()">提交</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 授权模态框 -->
+    <div id="authorizeModal" class="modal">
+        <div class="modal-content" style="width: 420px;">
+            <div class="modal-header">服务授权</div>
+            <form id="authorizeForm">
+                <input type="hidden" id="a_id" value="">
+                <div class="form-group">
+                    <label>授权单位</label>
+                    <input type="text" id="a_authorizedUnits" placeholder="多个单位用逗号分隔" required>
+                    <small style="color:#666; font-size:12px; display:block; margin-top:5px;">例如：不动产登记服务中心、住建局、应急管理局、物业公司</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-gray" onclick="closeAuthorizeModal()">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="submitAuthorize()">确认授权</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 配置模态框 -->
+    <div id="configModal" class="modal">
+        <div class="modal-content" style="width: 540px;">
+            <div class="modal-header">服务技术配置</div>
+            <form id="configForm">
+                <input type="hidden" id="c_id" value="">
+                <div class="form-group">
+                    <label>服务路由</label>
+                    <input type="text" id="cfg_route" placeholder="该服务对外提供的接口地址，如：/api/archive/query">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>认证方式</label>
+                        <select id="cfg_auth">
+                            <option value="none">无需认证</option>
+                            <option value="token" selected>Token认证</option>
+                            <option value="oauth2">OAuth2认证</option>
+                            <option value="apikey">API Key认证</option>
+                        </select>
+                        <small style="color:#999; font-size:12px;">调用服务时采用的身份认证方式</small>
+                    </div>
+                    <div class="form-group">
+                        <label>超时时间（毫秒）</label>
+                        <input type="number" id="cfg_timeout" value="3000" min="100" step="100">
+                        <small style="color:#999; font-size:12px;">服务调用最长等待时间</small>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>失败重试次数</label>
+                        <input type="number" id="cfg_retry" value="2" min="0" max="10">
+                        <small style="color:#999; font-size:12px;">调用失败后系统自动重试的次数</small>
+                    </div>
+                    <div class="form-group">
+                        <label>服务埋点</label>
+                        <select id="cfg_enableTrace">
+                            <option value="true" selected>启用</option>
+                            <option value="false">不启用</option>
+                        </select>
+                        <small style="color:#999; font-size:12px;">用于采集服务调用过程数据</small>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>访问日志</label>
+                    <select id="cfg_enableAccessLog">
+                        <option value="true" selected>启用</option>
+                        <option value="false">不启用</option>
+                    </select>
+                    <small style="color:#999; font-size:12px;">用于记录服务访问行为</small>
+                </div>
+                <div id="cfg_error" style="display:none; background:#fff3cd; color:#856404; padding:10px; border-radius:4px; margin-bottom:10px; font-size:13px;"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-gray" onclick="closeConfigModal()">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="submitConfig()">保存配置</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        const isExternalDepartment = /*[[${isExternalDepartment}]]*/ false;
+        const currentDepartment = /*[[${currentDepartment}]]*/ '';
+
+        // ========== 模态框控制 ==========
+        function openCreateModal() {
+            document.getElementById('serviceModalTitle').textContent = isExternalDepartment ? '提交服务申请' : '注册新服务';
+            document.getElementById('s_id').value = '';
+            document.getElementById('s_serviceName').value = '';
+            document.getElementById('s_serviceCode').value = '';
+            document.getElementById('s_version').value = '';
+            document.getElementById('s_apiUrl').value = '';
+            document.getElementById('s_ownerDepartment').value = isExternalDepartment ? currentDepartment : '';
+            document.getElementById('s_ownerDepartment').readOnly = isExternalDepartment;
+            document.getElementById('s_securityLevel').value = '';
+            var authorizedUnitsEl = document.getElementById('s_authorizedUnits');
+            if (authorizedUnitsEl) authorizedUnitsEl.value = '';
+            document.getElementById('s_description').value = '';
+            document.getElementById('s_remark').value = '';
+            document.getElementById('serviceModal').style.display = 'block';
+        }
+
+        function closeServiceModal() {
+            document.getElementById('serviceModal').style.display = 'none';
+        }
+
+        function editService(id) {
+            // 从服务器获取服务详情
+            fetch('/service-components/api/' + id)
+                .then(function(resp) { return resp.json(); })
+                .then(function(data) {
+                    document.getElementById('serviceModalTitle').textContent = '编辑服务';
+                    document.getElementById('s_id').value = data.id;
+                    document.getElementById('s_serviceName').value = data.serviceName || '';
+                    document.getElementById('s_serviceCode').value = data.serviceCode || '';
+                    document.getElementById('s_version').value = data.version || '';
+                    document.getElementById('s_apiUrl').value = data.apiUrl || '';
+                    document.getElementById('s_ownerDepartment').value = isExternalDepartment ? currentDepartment : (data.ownerDepartment || '');
+                    document.getElementById('s_ownerDepartment').readOnly = isExternalDepartment;
+                    document.getElementById('s_securityLevel').value = data.securityLevel || '';
+                    var authorizedUnitsEl = document.getElementById('s_authorizedUnits');
+                    if (authorizedUnitsEl) authorizedUnitsEl.value = data.authorizedUnits || '';
+                    document.getElementById('s_description').value = data.description || '';
+                    document.getElementById('s_remark').value = data.remark || '';
+                    document.getElementById('serviceModal').style.display = 'block';
+                });
+        }
+
+        function submitService() {
+            var id = document.getElementById('s_id').value;
+            var isCreate = (id === '');
+            var url = isCreate ? '/service-components/create' : '/service-components/update';
+
+            var formData = new FormData();
+            if (!isCreate) formData.append('id', id);
+            formData.append('serviceName', document.getElementById('s_serviceName').value);
+            formData.append('serviceCode', document.getElementById('s_serviceCode').value);
+            formData.append('description', document.getElementById('s_description').value);
+            formData.append('version', document.getElementById('s_version').value);
+            formData.append('apiUrl', document.getElementById('s_apiUrl').value);
+            formData.append('ownerDepartment', document.getElementById('s_ownerDepartment').value);
+            formData.append('securityLevel', document.getElementById('s_securityLevel').value);
+            var authorizedUnitsEl = document.getElementById('s_authorizedUnits');
+            if (authorizedUnitsEl) formData.append('authorizedUnits', authorizedUnitsEl.value);
+            formData.append('remark', document.getElementById('s_remark').value);
+
+            // 注册时自动生成默认配置，编辑时不覆盖已有配置
+            if (isCreate) {
+                var apiUrl = document.getElementById('s_apiUrl').value;
+                var defaultConfig = {
+                    route: apiUrl || '',
+                    auth: 'token',
+                    timeout: 3000,
+                    retry: 2,
+                    enableTrace: true,
+                    enableAccessLog: true
+                };
+                formData.append('configJson', JSON.stringify(defaultConfig, null, 2));
+            }
+
+            fetch(url, { method: 'POST', body: formData })
+                .then(function(resp) { return resp.json(); })
+                .then(function(result) {
+                    alert(result.message);
+                    if (result.success) { location.reload(); }
+                });
+        }
+
+        function deleteService(id) {
+            if (!confirm('确定要删除该服务组件吗？')) return;
+            fetch('/service-components/delete/' + id, { method: 'POST' })
+                .then(function(resp) { return resp.json(); })
+                .then(function(result) {
+                    alert(result.message);
+                    if (result.success) { location.reload(); }
+                });
+        }
+
+        function submitApproval(id) {
+            if (!confirm('确定提交审批吗？')) return;
+            fetch('/service-components/submit/' + id, { method: 'POST' })
+                .then(function(resp) { return resp.json(); })
+                .then(function(result) {
+                    alert(result.message);
+                    if (result.success) { location.reload(); }
+                });
+        }
+
+        function publishService(id) {
+            if (!confirm('确定发布该服务吗？')) return;
+            fetch('/service-components/publish/' + id, { method: 'POST' })
+                .then(function(resp) { return resp.json(); })
+                .then(function(result) {
+                    alert(result.message);
+                    if (result.success) { location.reload(); }
+                });
+        }
+
+        function offlineService(id) {
+            if (!confirm('确定下架该服务吗？')) return;
+            fetch('/service-components/offline/' + id, { method: 'POST' })
+                .then(function(resp) { return resp.json(); })
+                .then(function(result) {
+                    alert(result.message);
+                    if (result.success) { location.reload(); }
+                });
+        }
+
+        // ========== 授权 ==========
+        function authorizeService(id) {
+            document.getElementById('a_id').value = id;
+            document.getElementById('a_authorizedUnits').value = '';
+            document.getElementById('authorizeModal').style.display = 'block';
+        }
+
+        function closeAuthorizeModal() {
+            document.getElementById('authorizeModal').style.display = 'none';
+        }
+
+        function submitAuthorize() {
+            var id = document.getElementById('a_id').value;
+            var formData = new FormData();
+            formData.append('authorizedUnits', document.getElementById('a_authorizedUnits').value);
+            fetch('/service-components/authorize/' + id, { method: 'POST', body: formData })
+                .then(function(resp) { return resp.json(); })
+                .then(function(result) {
+                    alert(result.message);
+                    if (result.success) { location.reload(); }
+                });
+        }
+
+        // ========== 配置 ==========
+        function getDefaultConfig(apiUrl) {
+            return { route: apiUrl || '', auth: 'token', timeout: 3000, retry: 2, enableTrace: true, enableAccessLog: true };
+        }
+
+        function tryParseJson(str) {
+            // 尝试直接解析
+            try {
+                return JSON.parse(str);
+            } catch (e) {
+                // 忽略，尝试下一步
+            }
+            // 尝试反转义：将 \n 替换为真实换行，\" 替换为 "，\t 替换为 tab
+            try {
+                var unescaped = str.replace(/\\n/g, '\n').replace(/\\t/g, '\t').replace(/\\"/g, '"');
+                if (unescaped !== str) {
+                    return JSON.parse(unescaped);
+                }
+            } catch (e) {
+                // 忽略
+            }
+            return null;
+        }
+
+        function parseConfigJson(jsonStr, apiUrl) {
+            if (!jsonStr || jsonStr.trim() === '') {
+                return getDefaultConfig(apiUrl);
+            }
+            var parsed = tryParseJson(jsonStr);
+            if (parsed === null) {
+                return null; // JSON 解析失败
+            }
+            return {
+                route: parsed.route || '',
+                auth: parsed.auth || 'token',
+                timeout: parsed.timeout || 3000,
+                retry: parsed.retry != null ? parsed.retry : 2,
+                enableTrace: parsed.enableTrace !== false,
+                enableAccessLog: parsed.enableAccessLog !== false
+            };
+        }
+
+        function fillConfigForm(cfg) {
+            document.getElementById('cfg_route').value = cfg.route || '';
+            document.getElementById('cfg_auth').value = cfg.auth || 'token';
+            document.getElementById('cfg_timeout').value = cfg.timeout || 3000;
+            document.getElementById('cfg_retry').value = cfg.retry != null ? cfg.retry : 2;
+            document.getElementById('cfg_enableTrace').value = cfg.enableTrace !== false ? 'true' : 'false';
+            document.getElementById('cfg_enableAccessLog').value = cfg.enableAccessLog !== false ? 'true' : 'false';
+        }
+
+        function configService(id) {
+            document.getElementById('cfg_error').style.display = 'none';
+            fetch('/service-components/api/' + id)
+                .then(function(resp) { return resp.json(); })
+                .then(function(data) {
+                    document.getElementById('c_id').value = data.id;
+                    var cfg = parseConfigJson(data.configJson, data.apiUrl);
+                    if (cfg === null) {
+                        document.getElementById('cfg_error').textContent = '当前配置格式异常，请重新保存配置。';
+                        document.getElementById('cfg_error').style.display = 'block';
+                        cfg = getDefaultConfig(data.apiUrl);
+                    }
+                    fillConfigForm(cfg);
+                    document.getElementById('configModal').style.display = 'block';
+                });
+        }
+
+        function closeConfigModal() {
+            document.getElementById('cfg_error').style.display = 'none';
+            document.getElementById('configModal').style.display = 'none';
+        }
+
+        function submitConfig() {
+            var id = document.getElementById('c_id').value;
+            var cfg = {
+                route: document.getElementById('cfg_route').value,
+                auth: document.getElementById('cfg_auth').value,
+                timeout: parseInt(document.getElementById('cfg_timeout').value) || 3000,
+                retry: parseInt(document.getElementById('cfg_retry').value) || 2,
+                enableTrace: document.getElementById('cfg_enableTrace').value === 'true',
+                enableAccessLog: document.getElementById('cfg_enableAccessLog').value === 'true'
+            };
+            var formData = new FormData();
+            formData.append('configJson', JSON.stringify(cfg, null, 2));
+            fetch('/service-components/config/' + id, { method: 'POST', body: formData })
+                .then(function(resp) { return resp.json(); })
+                .then(function(result) {
+                    alert(result.message);
+                    if (result.success) { location.reload(); }
+                });
+        }
+
+        // 点击模态框外部关闭
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+
+    </script>
+</body>
+</html>

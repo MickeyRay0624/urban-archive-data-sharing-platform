@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.collaborative.sharing.mapper.DataElementMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="DataElementResultMap" type="com.collaborative.sharing.entity.DataElement">
+        <id column="id" property="id"/>
+        <result column="data_name" property="dataName"/>
+        <result column="data_type" property="dataType"/>
+        <result column="data_subtype" property="dataSubtype"/>
+        <result column="security_level" property="securityLevel"/>
+        <result column="data_version" property="dataVersion"/>
+        <result column="source_system" property="sourceSystem"/>
+        <result column="description" property="description"/>
+        <result column="status" property="status"/>
+        <result column="uploader" property="uploader"/>
+        <result column="department" property="department"/>
+        <result column="upload_time" property="uploadTime"/>
+        <result column="character_count" property="characterCount"/>
+        <result column="summary" property="summary"/>
+        <result column="attachment_path" property="attachmentPath"/>
+        <result column="attachment_name" property="attachmentName"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <!-- 查找所有数据要素 -->
+    <select id="findAll" resultMap="DataElementResultMap">
+        SELECT id, data_name, data_type, data_subtype, security_level, data_version, source_system,
+               description, status, uploader, department,
+               upload_time, character_count, summary, attachment_path, attachment_name, created_at, updated_at
+        FROM data_elements
+        ORDER BY upload_time DESC
+    </select>
+
+    <!-- 根据ID查找数据要素 -->
+    <select id="findById" parameterType="long" resultMap="DataElementResultMap">
+        SELECT id, data_name, data_type, data_subtype, security_level, data_version, source_system,
+               description, status, uploader, department,
+               upload_time, character_count, summary, attachment_path, attachment_name, created_at, updated_at
+        FROM data_elements
+        WHERE id = #{id}
+    </select>
+
+    <!-- 根据状态查找数据要素 -->
+    <select id="findByStatus" parameterType="string" resultMap="DataElementResultMap">
+        SELECT id, data_name, data_type, data_subtype, security_level, data_version, source_system,
+               description, status, uploader, department,
+               upload_time, character_count, summary, attachment_path, attachment_name, created_at, updated_at
+        FROM data_elements
+        WHERE status = #{status}
+        ORDER BY upload_time DESC
+    </select>
+
+    <!-- 插入数据要素 -->
+    <insert id="insert" parameterType="com.collaborative.sharing.entity.DataElement" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO data_elements (data_name, data_type, data_subtype, security_level, data_version, source_system,
+                                    description, status, uploader, department,
+                                    upload_time, character_count, summary, attachment_path, attachment_name, created_at, updated_at)
+        VALUES (#{dataName}, #{dataType}, #{dataSubtype}, #{securityLevel}, #{dataVersion}, #{sourceSystem},
+                #{description}, #{status}, #{uploader}, #{department},
+                #{uploadTime}, #{characterCount}, #{summary}, #{attachmentPath}, #{attachmentName}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <!-- 更新数据要素 -->
+    <update id="update" parameterType="com.collaborative.sharing.entity.DataElement">
+        UPDATE data_elements
+        SET data_name = #{dataName},
+            data_type = #{dataType},
+            data_subtype = #{dataSubtype},
+            security_level = #{securityLevel},
+            data_version = #{dataVersion},
+            source_system = #{sourceSystem},
+            description = #{description},
+            status = #{status},
+            uploader = #{uploader},
+            department = #{department},
+            upload_time = #{uploadTime},
+            character_count = #{characterCount},
+            summary = #{summary},
+            attachment_path = #{attachmentPath},
+            attachment_name = #{attachmentName},
+            updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID删除数据要素 -->
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM data_elements WHERE id = #{id}
+    </delete>
+
+    <!-- 根据条件查询数据要素（用于分页） -->
+    <select id="findByConditions" resultMap="DataElementResultMap">
+        SELECT id, data_name, data_type, data_subtype, security_level, data_version, source_system,
+               description, status, uploader, department,
+               upload_time, character_count, summary, attachment_path, attachment_name, created_at, updated_at
+        FROM data_elements
+        <where>
+            <if test="dataName != null and dataName != ''">
+                AND data_name LIKE CONCAT('%', #{dataName}, '%')
+            </if>
+            <if test="dataType != null and dataType != ''">
+                AND data_type = #{dataType}
+            </if>
+            <if test="dataSubtype != null and dataSubtype != ''">
+                AND data_subtype LIKE CONCAT('%', #{dataSubtype}, '%')
+            </if>
+            <if test="securityLevel != null and securityLevel != ''">
+                AND security_level = #{securityLevel}
+            </if>
+            <if test="department != null and department != ''">
+                AND department LIKE CONCAT('%', #{department}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY upload_time DESC
+    </select>
+
+</mapper>

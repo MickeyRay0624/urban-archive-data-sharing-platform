@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.collaborative.sharing.mapper.SystemSettingsMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="SystemSettingsResultMap" type="com.collaborative.sharing.entity.SystemSettings">
+        <id column="id" property="id"/>
+        <result column="setting_key" property="settingKey"/>
+        <result column="setting_value" property="settingValue"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <!-- 根据键查找设置 -->
+    <select id="findByKey" parameterType="string" resultMap="SystemSettingsResultMap">
+        SELECT id, setting_key, setting_value, created_at, updated_at
+        FROM system_settings
+        WHERE setting_key = #{settingKey}
+    </select>
+
+    <!-- 插入设置 -->
+    <insert id="insert" parameterType="com.collaborative.sharing.entity.SystemSettings" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO system_settings (setting_key, setting_value, created_at, updated_at)
+        VALUES (#{settingKey}, #{settingValue}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <!-- 更新设置 -->
+    <update id="update" parameterType="com.collaborative.sharing.entity.SystemSettings">
+        UPDATE system_settings
+        SET setting_value = #{settingValue},
+            updated_at = #{updatedAt}
+        WHERE setting_key = #{settingKey}
+    </update>
+
+    <!-- 根据键更新值 -->
+    <update id="updateValueByKey">
+        UPDATE system_settings
+        SET setting_value = #{settingValue},
+            updated_at = NOW()
+        WHERE setting_key = #{settingKey}
+    </update>
+
+</mapper>
+

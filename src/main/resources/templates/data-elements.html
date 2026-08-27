@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle + ' - 协同共享服务系统'}">城建档案业务数据管理 - 协同共享服务系统</title>
+    <link rel="stylesheet" href="/css/nav-dropdown.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', Arial, sans-serif; background-color: #f5f7fa; }
+        .header { background: #4a5f70; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 24px; font-weight: bold; }
+        .nav { display: flex; gap: 30px; }
+        .nav a { color: white; text-decoration: none; padding: 10px 15px; border-radius: 5px; }
+        .nav a:hover, .nav a.active { background-color: rgba(255,255,255,0.2); }
+        .main-content { padding: 30px; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-title { font-size: 24px; color: #2c3e50; font-weight: 600; }
+        .btn-group { display: flex; gap: 10px; }
+        .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+        .btn:hover { opacity: 0.85; }
+        .btn-primary { background-color: #3498db; color: white; }
+        .btn-primary:hover { background-color: #2980b9; opacity: 1; }
+        .btn-secondary { background-color: #95a5a6; color: white; }
+        .btn-secondary:hover { background-color: #7f8c8d; opacity: 1; }
+        .btn-danger { background-color: #e74c3c; color: white; }
+        .btn-info { background-color: #17a2b8; color: white; }
+        .btn-warning { background-color: #f39c12; color: white; }
+        .btn-outline { background: transparent; border: 1px solid #3498db; color: #3498db; }
+        .btn-outline:hover { background: #3498db; color: white; opacity: 1; }
+        .btn-sm { padding: 4px 10px; font-size: 12px; }
+        .search-container { background: white; padding: 20px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #e0e0e0; }
+        .search-container label { display: block; margin-bottom: 6px; font-weight: 500; color: #555; font-size: 13px; }
+        .search-container input, .search-container select { width: 100%; padding: 8px 12px; border: 1px solid #d0d0d0; border-radius: 4px; font-size: 14px; }
+        .search-container input:focus, .search-container select:focus { outline: none; border-color: #3498db; }
+        .table-container { background: white; border-radius: 4px; border: 1px solid #e0e0e0; overflow: hidden; }
+        .table { width: 100%; border-collapse: collapse; }
+        .table th { background: #f8f9fa; color: #2c3e50; font-weight: 600; padding: 12px; text-align: left; font-size: 13px; border-bottom: 2px solid #dee2e6; white-space: nowrap; }
+        .table td { padding: 12px; border-bottom: 1px solid #e9ecef; color: #495057; font-size: 14px; }
+        .table tbody tr:hover { background: #f8f9fa; }
+        .summary-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 500; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 500; }
+        .badge-blue { background: #e3f2fd; color: #1565c0; }
+        .badge-green { background: #e8f5e9; color: #2e7d32; }
+        .badge-warning { background: #fff3cd; color: #856404; }
+        .compliance-badge { display: inline-flex; align-items: center; white-space: nowrap; padding: 4px 9px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+        .compliance-pass { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .compliance-pending { background: #e2e3e5; color: #6c757d; border: 1px solid #d6d8db; }
+        .compliance-fail { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .compliance-result { padding: 15px; border-radius: 5px; font-size: 14px; line-height: 1.6; }
+        .compliance-result-pass { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .compliance-result-fail { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background: rgba(0,0,0,0.4); }
+        .modal-content { background: white; margin: 3% auto; padding: 24px; border-radius: 4px; width: 90%; max-width: 1200px; max-height: 90vh; overflow-y: auto; }
+        .modal-sm .modal-content { max-width: 500px; }
+        .modal-md .modal-content { max-width: 700px; }
+        .modal-header { font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #2c3e50; border-bottom: 1px solid #e0e0e0; padding-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: #999; }
+        .modal-close:hover { color: #333; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+        .alert { padding: 12px 16px; border-radius: 4px; margin-bottom: 16px; font-size: 14px; white-space: pre-line; line-height: 1.6; }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .close-alert { float: right; cursor: pointer; font-weight: bold; }
+        .loading { text-align: center; padding: 30px; color: #999; }
+        .spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid #e0e0e0; border-top-color: #3498db; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .pagination-container { margin-top: 16px; display: flex; justify-content: space-between; align-items: center; }
+        .pagination-info { color: #666; font-size: 13px; }
+        .pagination-buttons { display: flex; gap: 4px; align-items: center; }
+        .pagination-buttons a, .pagination-buttons span { padding: 6px 12px; border-radius: 3px; font-size: 13px; text-decoration: none; display: inline-block; min-width: 32px; text-align: center; }
+        .pagination-buttons a { background: white; color: #3498db; border: 1px solid #d0d0d0; }
+        .pagination-buttons a:hover { background: #3498db; color: white; }
+        .pagination-buttons .active { background: #3498db; color: white; border-color: #3498db; }
+        .pagination-buttons .disabled { color: #ccc; border: 1px solid #e0e0e0; pointer-events: none; }
+        .table-wrap { overflow-x: auto; }
+        .extra-json-box { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 4px; padding: 12px; font-family: monospace; font-size: 13px; white-space: pre-wrap; max-height: 300px; overflow-y: auto; }
+        .unrecognized-table-wrap { overflow-x: auto; }
+        .unrecognized-table-wrap table { min-width: 1150px; }
+        .unrecognized-table-wrap th:nth-child(1) { width: 120px; }
+        .unrecognized-table-wrap th:nth-child(2) { width: 80px; }
+        .unrecognized-table-wrap th:nth-child(3) { width: 220px; }
+        .unrecognized-table-wrap th:nth-child(4) { width: 220px; }
+        .unrecognized-table-wrap th:nth-child(5) { width: 320px; }
+        .unrecognized-table-wrap th:nth-child(6) { width: 160px; }
+        .sample-cell { max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .action-btn-group { display: flex; gap: 4px; flex-wrap: wrap; }
+        .duplicate-warning { background: #fff3cd; padding: 12px; border-radius: 4px; margin: 8px 0; border: 1px solid #ffeaa7; font-size: 13px; line-height: 1.6; }
+        .extra-field-table td:first-child { font-weight: 600; color: #2c3e50; width: 200px; white-space: nowrap; }
+        .extra-field-table td:last-child { color: #495057; word-break: break-all; }
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 500; color: #555; font-size: 13px; }
+        .form-group input, .form-group textarea { width: 100%; padding: 8px 12px; border: 1px solid #d0d0d0; border-radius: 4px; font-size: 14px; font-family: inherit; }
+        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #3498db; }
+        .data-subtype-table th:last-child { width: 390px; }
+        .data-subtype-table td:last-child { min-width: 360px; }
+        .progress-container { height: 22px; background: #e9ecef; border-radius: 12px; overflow: hidden; margin-bottom: 10px; }
+        .progress-bar { height: 100%; background: linear-gradient(90deg,#3498db,#2ecc71); border-radius: 12px; transition: width 0.3s; width: 0%; }
+        .service-overview { background: white; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
+        .service-overview-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 18px; border-bottom: 1px solid #edf0f2; }
+        .service-overview-title { font-size: 16px; color: #2c3e50; font-weight: 600; }
+        .service-overview-subtitle { color: #7f8c8d; font-size: 12px; }
+        .service-metrics { display: grid; grid-template-columns: repeat(6, minmax(120px, 1fr)); border-bottom: 1px solid #edf0f2; }
+        .service-metric { padding: 14px 16px; border-right: 1px solid #edf0f2; min-width: 0; }
+        .service-metric:last-child { border-right: none; }
+        .service-metric span { display: block; color: #7f8c8d; font-size: 12px; margin-bottom: 6px; }
+        .service-metric strong { color: #2c3e50; font-size: 22px; line-height: 1; }
+        .service-detail-list { padding: 12px 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; border-bottom: 1px solid #edf0f2; color: #495057; font-size: 13px; }
+        .service-detail-list strong { color: #2c3e50; margin-right: 8px; }
+        .muted-list { color: #7f8c8d; font-size: 12px; line-height: 1.5; margin-top: 4px; max-width: 280px; }
+        .metadata-summary { display: grid; grid-template-columns: repeat(3, minmax(140px, 1fr)); gap: 0; background: white; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
+        .metadata-summary-item { padding: 14px 18px; border-right: 1px solid #edf0f2; }
+        .metadata-summary-item:last-child { border-right: none; }
+        .metadata-summary-item span { display: block; color: #7f8c8d; font-size: 12px; margin-bottom: 6px; }
+        .metadata-summary-item strong { color: #2c3e50; font-size: 22px; line-height: 1; }
+        .metadata-field-table th:nth-child(1) { width: 170px; }
+        .metadata-field-table th:nth-child(2) { width: 190px; }
+        .metadata-field-table th:nth-child(3) { width: 90px; }
+        .metadata-field-table th:nth-child(4) { width: 180px; }
+        .metadata-field-table th:nth-child(5) { width: 220px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">协同共享服务系统</div>
+        <nav class="nav">
+            <a th:unless="${isExternalDepartment}" href="/">首页</a>
+            <a th:unless="${isExternalDepartment}" href="/todo-items">审批管理</a>
+            <div class="nav-item nav-dropdown" th:unless="${isExternalDepartment}">
+                <a href="/data-elements/business"
+                   class="nav-link"
+                   th:classappend="${activeNav == 'data-elements'} ? ' active' : ''">数据要素管理</a>
+                <div class="dropdown-menu">
+                    <a href="/data-elements/business" class="dropdown-link" th:classappend="${activeDataElementTypeKey == 'business'} ? ' active' : ''">业务数据</a>
+                    <a href="/data-elements/metadata" class="dropdown-link" th:classappend="${activeDataElementTypeKey == 'metadata'} ? ' active' : ''">业务元数据</a>
+                    <a href="/data-elements/service-instance" class="dropdown-link" th:classappend="${activeDataElementTypeKey == 'service-instance'} ? ' active' : ''">服务实例数据</a>
+                    <a href="/data-elements/log" class="dropdown-link" th:classappend="${activeDataElementTypeKey == 'log'} ? ' active' : ''">日志数据</a>
+                </div>
+            </div>
+            <a href="/service-components">服务组件管理</a>
+            <a th:unless="${isExternalDepartment}" href="/monitoring">监控运维</a>
+            <a th:unless="${isExternalDepartment}" href="/security">安全防护</a>
+            <a href="/settings">设置</a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <!-- 提示信息 -->
+        <div th:if="${success}" class="alert alert-success">
+            <span class="close-alert" onclick="this.parentElement.style.display='none'">&times;</span>
+            <span th:text="${success}"></span>
+            <div th:if="${hasUnrecognized}" style="margin-top:8px;">
+                <span class="badge badge-warning" style="padding:4px 10px;">扩展字段</span>
+                <button class="btn btn-sm btn-warning" onclick="showUnrecognizedDetails()">查看本次扩展字段列</button>
+                <button class="btn btn-sm btn-info" onclick="showBatchImportData()">查看本次导入数据</button>
+                <button class="btn btn-sm btn-outline" onclick="showUploadHistory()">查看上传记录</button>
+                <span style="color:#856404;font-size:13px;margin-left:8px;">扩展字段已保存，不会丢失</span>
+            </div>
+            <div th:unless="${hasUnrecognized}" style="margin-top:8px;" th:if="${importBatchId}">
+                <button class="btn btn-sm btn-info" onclick="showBatchImportData()">查看本次导入数据</button>
+                <button class="btn btn-sm btn-outline" onclick="showUploadHistory()">查看上传记录</button>
+            </div>
+        </div>
+        <div th:if="${error}" class="alert alert-error">
+            <span class="close-alert" onclick="this.parentElement.style.display='none'">&times;</span>
+            <span th:text="${error}"></span>
+            <div th:if="${duplicateBatchId}" class="duplicate-warning" style="margin-top:8px;">
+                <span th:if="${duplicateFileName}">文件：<strong th:text="${duplicateFileName}"></strong><br></span>
+                <span>上传批次：#<strong th:text="${duplicateBatchId}"></strong><br></span>
+                <div style="margin-top:8px;">
+                    <button class="btn btn-sm btn-info" onclick="showUploadHistory()">查看历史上传记录</button>
+                    <button class="btn btn-sm btn-primary" onclick="forceImport()">仍然导入一次</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-header">
+            <h1 class="page-title" th:text="${pageTitle}">城建档案业务数据管理</h1>
+            <div class="btn-group" th:unless="${businessMetadataPage}">
+                <button class="btn btn-primary" onclick="openSubtypeRowModal()"><span>+</span>新增数据子类</button>
+                <button class="btn btn-primary" onclick="openImportModal()"><span>+</span>上传 Excel</button>
+                <button class="btn btn-secondary" onclick="showUploadHistory()"><span>☰</span>上传记录</button>
+                <a th:href="${basePath + '/export'}" class="btn btn-secondary"><span>↓</span>导出</a>
+            </div>
+            <div class="btn-group" th:if="${businessMetadataPage}">
+                <a href="/data-elements/business" class="btn btn-secondary">业务数据</a>
+                <a th:href="${basePath + '/export'}" class="btn btn-secondary"><span>↓</span>导出字段清单</a>
+            </div>
+        </div>
+
+        <!-- 筛选区域 -->
+        <div class="search-container">
+            <form th:unless="${businessMetadataPage}" method="get" th:action="${basePath}" style="display:grid;grid-template-columns:repeat(5,1fr);gap:15px;align-items:end;">
+                <div><label>数据子类</label><select name="dataSubtype"><option value="">全部</option><option th:each="st:${subtypeList}" th:value="${st.name}" th:text="${st.name}" th:selected="${dataSubtype==st.name}"></option></select></div>
+                <div><label>关键词</label><input type="text" name="keyword" th:value="${keyword}" th:placeholder="${keywordPlaceholder}"></div>
+                <div><label>上传开始</label><input type="date" name="uploadTimeStart"></div>
+                <div><label>上传结束</label><input type="date" name="uploadTimeEnd"></div>
+                <div><label>上传批次</label><select name="batchId"><option value="">全部</option><option th:each="b:${batches}" th:value="${b.id}" th:text="${b.originalFileName}"></option></select></div>
+                <div style="grid-column:span 5;display:flex;justify-content:flex-end;gap:10px;">
+                    <button type="submit" class="btn btn-primary">查询</button>
+                    <button type="button" class="btn btn-secondary" onclick="window.location.href=basePath">重置</button>
+                </div>
+            </form>
+            <form th:if="${businessMetadataPage}" method="get" th:action="${basePath}" style="display:grid;grid-template-columns:repeat(3,1fr);gap:15px;align-items:end;">
+                <div><label>业务数据子类</label><select name="dataSubtype"><option value="">全部</option><option th:each="st:${subtypeList}" th:value="${st.name}" th:text="${st.name}" th:selected="${dataSubtype==st.name}"></option></select></div>
+                <div><label>关键词</label><input type="text" name="keyword" th:value="${keyword}" th:placeholder="${keywordPlaceholder}"></div>
+                <div style="display:flex;justify-content:flex-end;gap:10px;">
+                    <button type="submit" class="btn btn-primary">查询</button>
+                    <button type="button" class="btn btn-secondary" onclick="window.location.href=basePath">重置</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 业务元数据：业务数据表头字段清单 -->
+        <div class="metadata-summary" th:if="${businessMetadataPage}">
+            <div class="metadata-summary-item"><span>业务数据表</span><strong th:text="${metadataFieldSummary.tableCount}">0</strong></div>
+            <div class="metadata-summary-item"><span>表头字段总数</span><strong th:text="${metadataFieldSummary.fieldCount}">0</strong></div>
+            <div class="metadata-summary-item"><span>当前显示字段</span><strong th:text="${metadataFieldSummary.visibleFieldCount}">0</strong></div>
+        </div>
+
+        <div class="table-container" th:if="${businessMetadataPage}">
+            <table class="table metadata-field-table">
+                <thead>
+                    <tr>
+                        <th>业务数据子类</th>
+                        <th>数据库表名</th>
+                        <th>字段序号</th>
+                        <th>表头字段</th>
+                        <th>数据库字段名</th>
+                        <th>元数据类型</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:if="${metadataFieldRows == null || metadataFieldRows.isEmpty()}">
+                        <td colspan="6" class="empty-state">暂无字段元数据</td>
+                    </tr>
+                    <tr th:each="row:${metadataFieldRows}">
+                        <td><strong th:text="${row.dataSubtype}">工程基本信息</strong></td>
+                        <td><span class="summary-badge badge-blue" th:text="${row.tableName}">uc_project_basic</span></td>
+                        <td th:text="${row.fieldNo}">1</td>
+                        <td th:text="${row.cnName}">工程名称</td>
+                        <td><code th:text="${row.enName}">project_name</code></td>
+                        <td><span class="summary-badge badge-green" th:text="${row.metadataType}">业务表头字段</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 服务实例数据：服务组件同步总览 -->
+        <div class="service-overview" th:if="${serviceInstanceOverview != null}">
+            <div class="service-overview-header">
+                <div>
+                    <div class="service-overview-title">服务组件同步信息</div>
+                    <div class="service-overview-subtitle">按服务组件管理模块中的服务申请、授权、发布和接口配置实时汇总</div>
+                </div>
+            </div>
+            <div class="service-metrics">
+                <div class="service-metric"><span>申请部门数</span><strong th:text="${serviceInstanceOverview.departmentCount}">0</strong></div>
+                <div class="service-metric"><span>服务申请数</span><strong th:text="${serviceInstanceOverview.applicationCount}">0</strong></div>
+                <div class="service-metric"><span>已授权服务</span><strong th:text="${serviceInstanceOverview.authorizedCount}">0</strong></div>
+                <div class="service-metric"><span>已发布服务</span><strong th:text="${serviceInstanceOverview.publishedCount}">0</strong></div>
+                <div class="service-metric"><span>访问次数</span><strong th:text="${serviceInstanceOverview.accessRelationCount}">0</strong></div>
+                <div class="service-metric"><span>API 调用次数</span><strong th:text="${serviceInstanceOverview.apiCallableCount}">0</strong></div>
+            </div>
+            <div class="service-detail-list">
+                <div><strong>已授权：</strong><span th:text="${serviceInstanceOverview.authorizedServiceNames}">-</span></div>
+                <div><strong>已发布：</strong><span th:text="${serviceInstanceOverview.publishedServiceNames}">-</span></div>
+            </div>
+            <div class="table-wrap">
+                <table class="table" style="font-size:13px;">
+                    <thead>
+                        <tr>
+                            <th>部门</th>
+                            <th>提交申请</th>
+                            <th>已授权</th>
+                            <th>已发布</th>
+                            <th>访问次数</th>
+                            <th>API 调用次数</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="dept : ${serviceInstanceOverview.departmentRows}">
+                            <td><strong th:text="${dept.department}">部门</strong></td>
+                            <td>
+                                <span class="summary-badge badge-blue" th:text="${dept.applyCount}">0</span>
+                                <div class="muted-list" th:text="${dept.submittedServiceNames}">-</div>
+                            </td>
+                            <td>
+                                <span class="summary-badge badge-green" th:text="${dept.authorizedCount}">0</span>
+                                <div class="muted-list" th:text="${dept.authorizedServiceNames}">-</div>
+                            </td>
+                            <td>
+                                <span class="summary-badge badge-warning" th:text="${dept.publishedCount}">0</span>
+                                <div class="muted-list" th:text="${dept.publishedServiceNames}">-</div>
+                            </td>
+                            <td>
+                                <span th:text="${dept.accessCount}">0</span>
+                                <div class="muted-list" th:text="${dept.accessibleServiceNames}">-</div>
+                            </td>
+                            <td th:text="${dept.apiCallCount}">0</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 数据子类汇总列表 -->
+        <div class="table-container" th:unless="${businessMetadataPage}">
+            <table class="table data-subtype-table">
+                <thead><tr>
+                    <th>数据子类</th><th>数据库表名</th><th>字段数</th><th>已导入记录</th>
+                    <th>最近上传时间</th><th>最近上传人</th><th>最近上传文件</th><th>操作</th>
+                </tr></thead>
+                <tbody>
+                    <tr th:each="item:${subtypeList}" th:id="'subtype-row-' + ${item.id}">
+                        <td><strong th:text="${item.name}"></strong></td>
+                        <td><span class="summary-badge badge-blue" th:text="${item.tableName}"></span></td>
+                        <td th:text="${item.fieldCount}"></td>
+                        <td><span th:if="${item.recordCount>0}" class="summary-badge badge-green" th:text="${item.recordCount}"></span><span th:unless="${item.recordCount>0}">-</span></td>
+                        <td th:text="${item.lastUploadTime}"></td>
+                        <td th:text="${item.lastUploader}"></td>
+                        <td th:text="${item.lastFileName}" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></td>
+                        <td>
+                            <div class="action-btn-group">
+                                <button class="btn btn-info btn-sm" th:data-subtype="${item.name}" onclick="previewData(this.getAttribute('data-subtype'))">预览</button>
+                                <span th:if="${item.selfCheckStatus == 'SELF_CHECK_PASSED'}" class="compliance-badge compliance-pass">合规自检通过</span>
+                                <button th:unless="${item.selfCheckStatus == 'SELF_CHECK_PASSED'}"
+                                        class="btn btn-warning btn-sm data-subtype-action"
+                                        data-check="self"
+                                        th:data-subtype="${item.name}"
+                                        onclick="dataElementSelfCheck(this.getAttribute('data-subtype'))">合规自检</button>
+                                <span th:if="${item.securityCheckStatus == 'SECURITY_CHECK_PASSED'}" class="compliance-badge compliance-pass">数安港检查通过</span>
+                                <button th:unless="${item.securityCheckStatus == 'SECURITY_CHECK_PASSED'}"
+                                        class="btn btn-outline btn-sm data-subtype-action"
+                                        data-check="security"
+                                        th:data-subtype="${item.name}"
+                                        onclick="dataElementSecurityCheck(this.getAttribute('data-subtype'))">温州数安港合规检查</button>
+                                <button class="btn btn-danger btn-sm"
+                                        th:data-id="${item.id}"
+                                        th:data-name="${item.name}"
+                                        onclick="deleteSubtypeRow(this.getAttribute('data-id'), this.getAttribute('data-name'))">删除行</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 导入模态框 -->
+    <div id="importModal" class="modal modal-sm">
+        <div class="modal-content">
+            <div class="modal-header"><span>上传 Excel 数据</span><button class="modal-close" onclick="closeImportModal()">&times;</button></div>
+            <form th:action="${basePath + '/import'}" method="post" enctype="multipart/form-data" id="importForm">
+                <input type="hidden" name="duplicatePolicy" id="duplicatePolicy" value="skip">
+                <div class="form-group" style="margin-bottom:16px;">
+                    <label>选择 Excel 文件（.xlsx / .xls）</label>
+                    <input type="file" name="file" accept=".xlsx,.xls" required style="width:100%;padding:8px;border:1px solid #d0d0d0;border-radius:4px;">
+                    <small style="color:#666;font-size:12px;display:block;margin-top:5px;">系统自动识别表头，未匹配字段保存到扩展字段。重复文件自动阻止。</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeImportModal()">取消</button>
+                    <button type="submit" class="btn btn-primary">导入</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 新增数据子类模态框 -->
+    <div id="subtypeRowModal" class="modal modal-sm">
+        <div class="modal-content">
+            <div class="modal-header"><span>新增数据子类</span><button class="modal-close" onclick="closeSubtypeRowModal()">&times;</button></div>
+            <form id="subtypeRowForm">
+                <div class="form-group">
+                    <label>数据子类</label>
+                    <input type="text" id="sr_dataSubtype" placeholder="例如：消防验收信息" required>
+                </div>
+                <div class="form-group">
+                    <label>数据库表名</label>
+                    <input type="text" id="sr_tableName" placeholder="例如：uc_fire_acceptance">
+                </div>
+                <div class="form-group">
+                    <label>字段数</label>
+                    <input type="number" id="sr_fieldCount" min="0" value="0">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeSubtypeRowModal()">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="submitSubtypeRow()">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 数据要素合规检查模态框 -->
+    <div id="dataComplianceModal" class="modal modal-sm">
+        <div class="modal-content">
+            <div class="modal-header"><span id="dc_title">合规检查</span><button class="modal-close" onclick="closeDataComplianceModal()">&times;</button></div>
+            <div id="dc_progressWrap">
+                <div class="progress-container">
+                    <div id="dc_progressBar" class="progress-bar"></div>
+                </div>
+                <div style="text-align:center;margin-bottom:10px;">
+                    <span id="dc_progressText" style="font-size:22px;font-weight:bold;color:#2c3e50;">0%</span>
+                </div>
+                <div id="dc_stepText" style="text-align:center;color:#7f8c8d;font-size:14px;">正在准备检查...</div>
+            </div>
+            <div id="dc_result" style="display:none;"></div>
+            <div id="dc_errorInfo" style="display:none;background:#f8d7da;color:#721c24;padding:10px;border-radius:4px;margin-bottom:10px;font-size:13px;"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeDataComplianceModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 预览数据模态框 -->
+    <div id="previewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="previewTitle">数据预览</span>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                    <input type="text" id="previewKeyword" placeholder="搜索关键词..." style="padding:6px 10px;border:1px solid #d0d0d0;border-radius:4px;font-size:13px;width:180px;">
+                    <button class="btn btn-primary btn-sm" onclick="doPreviewSearch()">搜索</button>
+                </div>
+                <button class="modal-close" onclick="closePreviewModal()">&times;</button>
+            </div>
+            <div id="previewContent"><div class="loading"><div class="spinner"></div><div style="margin-top:10px;">加载中...</div></div></div>
+            <div id="previewPagination" class="pagination-container" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- 扩展字段列详情模态框（批次级别） -->
+    <div id="unrecognizedModal" class="modal">
+        <div class="modal-content" style="max-width:1100px!important;width:80vw!important;">
+            <div class="modal-header"><span>本次扩展字段列详情</span><button class="modal-close" onclick="closeUnrecognizedModal()">&times;</button></div>
+            <div class="unrecognized-table-wrap">
+                <table class="table" style="font-size:13px;">
+                    <thead><tr><th>Sheet</th><th>列号</th><th>原始字段名</th><th>标准化后字段名</th><th>样例值</th><th>处理方式</th></tr></thead>
+                    <tbody id="unrecognizedTableBody"><tr><td colspan="6" class="empty-state">加载中...</td></tr></tbody>
+                </table>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="closeUnrecognizedModal()">关闭</button></div>
+        </div>
+    </div>
+
+    <!-- 记录扩展字段模态框（记录级别） -->
+    <div id="extraJsonModal" class="modal modal-md">
+        <div class="modal-content">
+            <div class="modal-header"><span>该记录扩展字段</span><button class="modal-close" onclick="closeExtraJsonModal()">&times;</button></div>
+            <div id="extraJsonTableWrap"></div>
+            <div style="margin-top:12px;"><a href="javascript:void(0)" id="extraJsonRawToggle" onclick="toggleExtraJsonRaw()" style="color:#3498db;font-size:13px;text-decoration:none;">查看原始 JSON</a></div>
+            <div id="extraJsonRaw" class="extra-json-box" style="display:none;margin-top:8px;"></div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="closeExtraJsonModal()">关闭</button></div>
+        </div>
+    </div>
+
+    <!-- 上传记录模态框 -->
+    <div id="uploadHistoryModal" class="modal">
+        <div class="modal-content" style="max-width:95%;width:95vw;">
+            <div class="modal-header">
+                <span>上传记录</span>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                    <input type="text" id="historyKeyword" placeholder="搜索文件名..." style="padding:5px 8px;border:1px solid #d0d0d0;border-radius:4px;font-size:13px;width:150px;">
+                    <button class="btn btn-primary btn-sm" onclick="loadUploadHistory(1)">查询</button>
+                </div>
+                <button class="modal-close" onclick="closeUploadHistoryModal()">&times;</button>
+            </div>
+            <div class="table-wrap" id="uploadHistoryContent"><div class="loading"><div class="spinner"></div></div></div>
+            <div id="historyPagination" class="pagination-container" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- 批次导入数据模态框 -->
+    <div id="batchRecordsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="batchRecordsTitle">批次导入数据</span>
+                <button class="modal-close" onclick="closeBatchRecordsModal()">&times;</button>
+            </div>
+            <div class="table-wrap" id="batchRecordsContent"><div class="loading"><div class="spinner"></div></div></div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="closeBatchRecordsModal()">关闭</button></div>
+        </div>
+    </div>
+
+    <input type="hidden" id="lastImportBatchId" th:value="${importBatchId}">
+
+    <script th:inline="javascript">
+        var basePath = /*[[${basePath}]]*/ '/data-elements/business';
+        var dataType = /*[[${dataType}]]*/ '业务数据';
+        var typeKey = /*[[${typeKey}]]*/ 'business';
+        var recordLabel = /*[[${recordLabel}]]*/ '数据记录';
+        var currentSubtype = '', currentPage = 1, historyPage = 1;
+        var lastImportBatchId = document.getElementById('lastImportBatchId') ? document.getElementById('lastImportBatchId').value : '';
+        var duplicateFileHash = '';
+
+        // ========== 模态框操作 ==========
+        function openImportModal() { document.getElementById('importModal').style.display = 'block'; document.getElementById('duplicatePolicy').value = 'skip'; }
+        function closeImportModal() { document.getElementById('importModal').style.display = 'none'; }
+        function closePreviewModal() { document.getElementById('previewModal').style.display = 'none'; }
+        function closeUnrecognizedModal() { document.getElementById('unrecognizedModal').style.display = 'none'; }
+        function closeExtraJsonModal() { document.getElementById('extraJsonModal').style.display = 'none'; }
+        function closeUploadHistoryModal() { document.getElementById('uploadHistoryModal').style.display = 'none'; }
+        function closeBatchRecordsModal() { document.getElementById('batchRecordsModal').style.display = 'none'; }
+        function closeSubtypeRowModal() { document.getElementById('subtypeRowModal').style.display = 'none'; }
+        function closeDataComplianceModal() { document.getElementById('dataComplianceModal').style.display = 'none'; }
+
+        // ========== 主表行增删 ==========
+        function openSubtypeRowModal() {
+            document.getElementById('sr_dataSubtype').value = '';
+            document.getElementById('sr_tableName').value = '';
+            document.getElementById('sr_fieldCount').value = '0';
+            document.getElementById('subtypeRowModal').style.display = 'block';
+            setTimeout(function(){ document.getElementById('sr_dataSubtype').focus(); }, 50);
+        }
+
+        function submitSubtypeRow() {
+            var dataSubtype = document.getElementById('sr_dataSubtype').value.trim();
+            var tableName = document.getElementById('sr_tableName').value.trim();
+            var fieldCount = document.getElementById('sr_fieldCount').value;
+            if (!dataSubtype) { alert('请填写数据子类'); return; }
+            var formData = new FormData();
+            formData.append('dataSubtype', dataSubtype);
+            formData.append('tableName', tableName);
+            formData.append('fieldCount', fieldCount || '0');
+            fetch(basePath + '/subtypes/create', { method: 'POST', body: formData })
+            .then(function(r){ return r.json(); })
+            .then(function(result){
+                alert(result.message || (result.success ? '保存成功' : '保存失败'));
+                if(result.success){ location.reload(); }
+            });
+        }
+
+        function deleteSubtypeRow(id, name) {
+            if(!confirm('确定删除数据子类行「' + name + '」吗？默认子类会从当前列表隐藏，相关导入数据不会被删除。')) return;
+            fetch(basePath + '/subtypes/delete/' + id, { method: 'POST' })
+            .then(function(r){ return r.json(); })
+            .then(function(result){
+                if(result.success){
+                    var row = document.getElementById('subtype-row-' + id);
+                    if(row) row.parentNode.removeChild(row);
+                } else {
+                    alert(result.message || '删除失败');
+                }
+            });
+        }
+
+        // ========== 数据要素合规检查 ==========
+        function dataElementSelfCheck(subtype) {
+            runDataComplianceCheck('self', subtype);
+        }
+
+        function dataElementSecurityCheck(subtype) {
+            runDataComplianceCheck('security', subtype);
+        }
+
+        function runDataComplianceCheck(kind, subtype) {
+            var isSelf = kind === 'self';
+            var title = isSelf ? '数据要素合规自检' : '温州数安港合规检查';
+            document.getElementById('dc_title').textContent = title + ' - ' + subtype;
+            document.getElementById('dc_progressWrap').style.display = 'block';
+            document.getElementById('dc_result').style.display = 'none';
+            document.getElementById('dc_errorInfo').style.display = 'none';
+            document.getElementById('dc_errorInfo').textContent = '';
+            document.getElementById('dc_progressBar').style.width = '0%';
+            document.getElementById('dc_progressText').textContent = '0%';
+            document.getElementById('dc_stepText').textContent = '正在准备检查...';
+            document.getElementById('dataComplianceModal').style.display = 'block';
+
+            var steps = isSelf ? [
+                { pct: 15, text: '正在检查数据子类基础配置...' },
+                { pct: 35, text: '正在核验数据库表名与字段数量...' },
+                { pct: 55, text: '正在检查导入记录与扩展字段处理情况...' },
+                { pct: 78, text: '正在生成合规自检结论...' },
+                { pct: 100, text: '正在保存自检结果...' }
+            ] : [
+                { pct: 15, text: '正在连接温州数安港合规检查流程...' },
+                { pct: 35, text: '正在核验自检通过状态...' },
+                { pct: 60, text: '正在检查数据共享范围与元数据配置...' },
+                { pct: 82, text: '正在生成温州数安港检查结论...' },
+                { pct: 100, text: '正在保存检查结果...' }
+            ];
+            var idx = 0;
+            var timer = setInterval(function(){
+                if(idx >= steps.length){
+                    clearInterval(timer);
+                    doDataComplianceResult(kind, subtype);
+                    return;
+                }
+                var s = steps[idx];
+                document.getElementById('dc_progressBar').style.width = s.pct + '%';
+                document.getElementById('dc_progressText').textContent = s.pct + '%';
+                document.getElementById('dc_stepText').textContent = s.text;
+                idx++;
+            }, 420);
+        }
+
+        function doDataComplianceResult(kind, subtype) {
+            var endpoint = kind === 'self' ? basePath + '/compliance/self-check' : basePath + '/compliance/security-check';
+            var formData = new FormData();
+            formData.append('subtype', subtype);
+            fetch(endpoint, { method: 'POST', body: formData })
+            .then(function(r){ return r.json(); })
+            .then(function(data){
+                document.getElementById('dc_progressWrap').style.display = 'none';
+                var resultDiv = document.getElementById('dc_result');
+                resultDiv.style.display = 'block';
+                if(data.success && data.passed){
+                    resultDiv.className = 'compliance-result compliance-result-pass';
+                    resultDiv.innerHTML = '<div style="font-size:18px;font-weight:bold;margin-bottom:10px;">' + esc(data.message || '检查通过') + '</div><div>检查结果已写入数据要素管理表。</div>' + renderCheckWarnings(data.warnings);
+                    markSubtypeCheckPassed(subtype, kind);
+                } else {
+                    resultDiv.className = 'compliance-result compliance-result-fail';
+                    var html = '<div style="font-size:18px;font-weight:bold;margin-bottom:10px;">' + esc(data.message || '检查未通过') + '</div>';
+                    if(data.issues && data.issues.length){
+                        html += '<div style="font-weight:bold;margin-bottom:8px;">发现以下问题：</div><ul style="padding-left:20px;">';
+                        for(var i=0;i<data.issues.length;i++){
+                            html += '<li style="margin-bottom:4px;">' + esc(data.issues[i]) + '</li>';
+                        }
+                        html += '</ul>';
+                    }
+                    html += renderCheckWarnings(data.warnings);
+                    resultDiv.innerHTML = html;
+                }
+            })
+            .catch(function(){
+                document.getElementById('dc_progressWrap').style.display = 'none';
+                document.getElementById('dc_errorInfo').textContent = '检查接口调用失败，请稍后重试';
+                document.getElementById('dc_errorInfo').style.display = 'block';
+            });
+        }
+
+        function renderCheckWarnings(warnings) {
+            if(!warnings || !warnings.length) return '';
+            var html = '<div style="margin-top:10px;font-weight:bold;">提示：</div><ul style="padding-left:20px;">';
+            for(var i=0;i<warnings.length;i++){
+                html += '<li style="margin-bottom:4px;">' + esc(warnings[i]) + '</li>';
+            }
+            html += '</ul>';
+            return html;
+        }
+
+        function markSubtypeCheckPassed(subtype, kind) {
+            var buttons = document.querySelectorAll('.data-subtype-action');
+            for(var i=0;i<buttons.length;i++){
+                var btn = buttons[i];
+                if(btn.getAttribute('data-subtype') === subtype && btn.getAttribute('data-check') === kind){
+                    var badge = document.createElement('span');
+                    badge.className = 'compliance-badge compliance-pass';
+                    badge.textContent = kind === 'self' ? '合规自检通过' : '数安港检查通过';
+                    btn.parentNode.replaceChild(badge, btn);
+                }
+            }
+        }
+
+        // ========== 强制导入（重复文件） ==========
+        function forceImport() {
+            document.getElementById('duplicatePolicy').value = 'force';
+            openImportModal();
+            alert('已切换为强制导入模式。请重新选择文件上传。');
+        }
+
+        // ========== 扩展字段列详情 ==========
+        function showUnrecognizedDetails() {
+            if (!lastImportBatchId) { alert('没有最近的导入批次'); return; }
+            document.getElementById('unrecognizedModal').style.display = 'block';
+            document.getElementById('unrecognizedTableBody').innerHTML = '<tr><td colspan="6" class="empty-state">加载中...</td></tr>';
+            fetch(basePath + '/batches/' + lastImportBatchId + '/unrecognized-columns')
+            .then(function(r){return r.json()})
+            .then(function(result){
+                if(!result.success){document.getElementById('unrecognizedTableBody').innerHTML='<tr><td colspan="6" class="empty-state">加载失败</td></tr>';return;}
+                var cols=[]; try{cols=JSON.parse(result.unrecognizedColumns||'[]');}catch(e){}
+                if(!cols||cols.length===0){document.getElementById('unrecognizedTableBody').innerHTML='<tr><td colspan="6" class="empty-state">暂无扩展字段列</td></tr>';return;}
+                var html='';
+                for(var i=0;i<cols.length;i++){
+                    var c=cols[i],samples=c.sampleValues||[],sampleText=samples.join('、')||'-';
+                    html+='<tr><td>'+(c.sheetName||'Sheet1')+'</td><td>'+(c.columnLetter||'')+'</td>';
+                    html+='<td title="'+esc(c.originalHeader)+'">'+esc(c.originalHeader)+'</td>';
+                    html+='<td title="'+esc(c.normalizedHeader)+'">'+esc(c.normalizedHeader)+'</td>';
+                    html+='<td class="sample-cell" title="'+esc(sampleText)+'">'+esc(sampleText)+'</td>';
+                    html+='<td><span class="badge badge-warning">已保存至 extra_json</span></td></tr>';
+                }
+                document.getElementById('unrecognizedTableBody').innerHTML=html;
+            });
+        }
+
+        // ========== 查看本次导入数据 ==========
+        var currentBatchRecords = [];
+        function showBatchImportData() {
+            if(!lastImportBatchId) return;
+            document.getElementById('batchRecordsTitle').textContent = '批次 #' + lastImportBatchId + ' 导入数据';
+            document.getElementById('batchRecordsModal').style.display = 'block';
+            document.getElementById('batchRecordsContent').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            fetch(basePath + '/batches/' + lastImportBatchId + '/records')
+            .then(function(r){return r.json()})
+            .then(function(result){
+                if(!result.success||!result.records){document.getElementById('batchRecordsContent').innerHTML='<div class="empty-state">无数据</div>';return;}
+                currentBatchRecords = result.records;
+                var html='<table class="table" style="font-size:13px;"><thead><tr><th>子类</th><th>显示标题</th><th>行号</th><th>记录数据</th><th>扩展字段</th></tr></thead><tbody>';
+                for(var i=0;i<result.records.length;i++){
+                    var rec=result.records[i];
+                    html+='<tr><td>'+esc(rec.dataSubtype)+'</td><td>'+esc(rec.displayName)+'</td><td>'+(rec.rowIndex||'-')+'</td>';
+                    html+='<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;" title="'+esc(rec.recordJson)+'">'+esc(rec.recordJson)+'</td>';
+                    if(rec.extraJson&&rec.extraJson!=='{}'){
+                        html+='<td><button class="btn btn-warning btn-sm" onclick="showRecordExtraJson('+rec.id+')">查看</button></td>';
+                    }else{html+='<td>-</td>';}
+                    html+='</tr>';
+                }
+                html+='</tbody></table>';
+                document.getElementById('batchRecordsContent').innerHTML=html;
+            });
+        }
+
+        // ========== 记录扩展字段 ==========
+        function showRecordExtraJson(recordId) {
+            fetch(basePath + '/records/' + recordId + '/extra-json')
+            .then(function(r){return r.json()})
+            .then(function(result){
+                if(!result.success){alert('加载失败');return;}
+                var json=result.extraJson;
+                if(!json||json==='{}'){alert('该记录无扩展字段');return;}
+                var obj; try{obj=JSON.parse(json);}catch(e){obj={};}
+                var html='<table class="table extra-field-table" style="font-size:13px;"><thead><tr><th>字段名</th><th>字段值</th></tr></thead><tbody>';
+                for(var key in obj){
+                    if(obj.hasOwnProperty(key)){
+                        html+='<tr><td>'+esc(key)+'</td><td>'+esc(obj[key])+'</td></tr>';
+                    }
+                }
+                html+='</tbody></table>';
+                document.getElementById('extraJsonTableWrap').innerHTML=html;
+                document.getElementById('extraJsonRaw').textContent=JSON.stringify(obj,null,2);
+                document.getElementById('extraJsonRaw').style.display='none';
+                document.getElementById('extraJsonModal').style.display='block';
+            });
+        }
+
+        var rawVisible=false;
+        function toggleExtraJsonRaw(){
+            rawVisible=!rawVisible;
+            document.getElementById('extraJsonRaw').style.display=rawVisible?'block':'none';
+            document.getElementById('extraJsonRawToggle').textContent=rawVisible?'隐藏原始 JSON':'查看原始 JSON';
+        }
+
+        // ========== 预览数据 ==========
+        function previewData(subtype){
+            currentSubtype=subtype;currentPage=1;
+            document.getElementById('previewTitle').textContent=subtype+' - 数据预览';
+            document.getElementById('previewKeyword').value='';
+            document.getElementById('previewModal').style.display='block';
+            document.getElementById('previewContent').innerHTML='<div class="loading"><div class="spinner"></div><div style="margin-top:10px;">加载中...</div></div>';
+            document.getElementById('previewPagination').style.display='none';
+            loadPreviewPage(1);
+        }
+        function doPreviewSearch(){currentPage=1;loadPreviewPage(1);}
+        function loadPreviewPage(page){
+            currentPage=page;
+            var kw=document.getElementById('previewKeyword').value.trim();
+            fetch(basePath + '/preview?subtype='+encodeURIComponent(currentSubtype)+'&keyword='+encodeURIComponent(kw)+'&pageNum='+page+'&pageSize=15')
+            .then(function(r){return r.json()})
+            .then(function(result){
+                if(!result.success){document.getElementById('previewContent').innerHTML='<div class="empty-state">加载失败</div>';return;}
+                renderPreviewTable(result);
+            });
+        }
+        function renderPreviewTable(result){
+            var data=result.data,fields=result.fields,list=data.list,total=data.total,pages=data.pages,pageNum=data.pageNum;
+            if(!list||list.length===0){document.getElementById('previewContent').innerHTML='<div class="empty-state">暂无数据</div>';document.getElementById('previewPagination').style.display='none';return;}
+            var html='<div class="table-wrap"><table class="table" style="font-size:13px;"><thead><tr>';
+            for(var i=0;i<fields.length;i++) html+='<th>'+fields[i].cnName+'</th>';
+            html+='<th>扩展字段</th><th>操作</th></tr></thead><tbody>';
+            for(var r=0;r<list.length;r++){
+                var rec=list[r],rj={}; try{rj=JSON.parse(rec.recordJson||'{}');}catch(e){}
+                html+='<tr>';
+                for(var f=0;f<fields.length;f++){
+                    var val=rj[fields[f].enName];
+                    html+='<td title="'+(val||'-')+'">'+(val||'-')+'</td>';
+                }
+                if(rec.extraJson&&rec.extraJson!=='{}'){
+                    html+='<td><button class="btn btn-warning btn-sm" onclick="showRecordExtraJson('+rec.id+')">查看</button></td>';
+                }else{
+                    html+='<td><button class="btn btn-sm btn-secondary" disabled style="opacity:0.5;">无扩展字段</button></td>';
+                }
+                html+='<td><button class="btn btn-danger btn-sm" onclick="deleteRecord('+rec.id+')">删除</button></td></tr>';
+            }
+            html+='</tbody></table></div>';
+            document.getElementById('previewContent').innerHTML=html;
+            if(pages>1){
+                var ph='<div class="pagination-info">共'+total+'条·第'+pageNum+'/'+pages+'页</div><div class="pagination-buttons">';
+                if(pageNum>1){ph+='<a href="javascript:void(0)" onclick="loadPreviewPage(1)">首页</a><a href="javascript:void(0)" onclick="loadPreviewPage('+(pageNum-1)+')">←上页</a>';}
+                else{ph+='<span class="disabled">首页</span><span class="disabled">←上页</span>';}
+                var sp=Math.max(1,pageNum-2),ep=Math.min(pages,pageNum+2);
+                for(var p=sp;p<=ep;p++){if(p===pageNum)ph+='<span class="active">'+p+'</span>';else ph+='<a href="javascript:void(0)" onclick="loadPreviewPage('+p+')">'+p+'</a>';}
+                if(pageNum<pages){ph+='<a href="javascript:void(0)" onclick="loadPreviewPage('+(pageNum+1)+')">下页→</a><a href="javascript:void(0)" onclick="loadPreviewPage('+pages+')">末页</a>';}
+                else{ph+='<span class="disabled">下页→</span><span class="disabled">末页</span>';}
+                ph+='</div>';
+                document.getElementById('previewPagination').innerHTML=ph;document.getElementById('previewPagination').style.display='flex';
+            }else{document.getElementById('previewPagination').style.display='none';}
+        }
+
+        // ========== 上传记录 ==========
+        function showUploadHistory(){historyPage=1;document.getElementById('uploadHistoryModal').style.display='block';document.getElementById('uploadHistoryContent').innerHTML='<div class="loading"><div class="spinner"></div></div>';loadUploadHistory(1);}
+        function loadUploadHistory(page){
+            historyPage=page;var kw=document.getElementById('historyKeyword').value.trim();
+            fetch(basePath + '/batches?keyword='+encodeURIComponent(kw)+'&pageNum='+page+'&pageSize=20')
+            .then(function(r){return r.json()})
+            .then(function(result){
+                if(!result.success){document.getElementById('uploadHistoryContent').innerHTML='<div class="empty-state">加载失败</div>';return;}
+                var data=result.data,list=data.list,total=data.total,pages=data.pages,pageNum=data.pageNum;
+                if(!list||list.length===0){document.getElementById('uploadHistoryContent').innerHTML='<div class="empty-state">暂无上传记录</div>';document.getElementById('historyPagination').style.display='none';return;}
+                var html='<table class="table" style="font-size:13px;"><thead><tr><th>批次ID</th><th>原始文件名</th><th>上传人</th><th>上传时间</th><th>行数</th><th>数据记录</th><th>识别字段</th><th>扩展字段</th><th>涉及子类</th><th>操作</th></tr></thead><tbody>';
+                for(var i=0;i<list.length;i++){
+                    var b=list[i];
+                    var unrecognizedCount=0;
+                    try{var u=JSON.parse(b.unrecognizedColumns||'[]');unrecognizedCount=u.length;}catch(e){}
+                    html+='<tr><td>#'+b.id+'</td><td title="'+esc(b.originalFileName)+'">'+esc(b.originalFileName)+'</td>';
+                    html+='<td>'+esc(b.uploader)+'</td><td>'+(b.uploadTime||'-')+'</td>';
+                    html+='<td>'+(b.totalRows||0)+'</td><td>'+(b.businessRecordCount||0)+'</td>';
+                    html+='<td>'+(b.recognizedColumns?b.recognizedColumns.split(', ').length:0)+'</td>';
+                    html+='<td>'+unrecognizedCount+'</td>';
+                    html+='<td title="'+esc(b.involvedSubtypes)+'" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(b.involvedSubtypes)+'</td>';
+                    html+='<td><div class="action-btn-group">';
+                    if(unrecognizedCount>0) html+='<button class="btn btn-warning btn-sm" onclick="showHistoryUnrecognized('+b.id+')">扩展字段列</button>';
+                    html+='<button class="btn btn-info btn-sm" onclick="showHistoryBatchRecords('+b.id+')">数据</button>';
+                    html+='<a href="'+basePath+'/batches/'+b.id+'/download" class="btn btn-secondary btn-sm">下载</a>';
+                    html+='<button class="btn btn-danger btn-sm" onclick="deleteBatch('+b.id+')">删除</button>';
+                    html+='</div></td></tr>';
+                }
+                html+='</tbody></table>';
+                document.getElementById('uploadHistoryContent').innerHTML=html;
+                if(pages>1){
+                    var ph='<div class="pagination-info">共'+total+'条·第'+pageNum+'/'+pages+'页</div><div class="pagination-buttons">';
+                    if(pageNum>1){ph+='<a href="javascript:void(0)" onclick="loadUploadHistory(1)">首页</a><a href="javascript:void(0)" onclick="loadUploadHistory('+(pageNum-1)+')">←上页</a>';}
+                    else{ph+='<span class="disabled">首页</span><span class="disabled">←上页</span>';}
+                    var sp=Math.max(1,pageNum-2),ep=Math.min(pages,pageNum+2);
+                    for(var p=sp;p<=ep;p++){if(p===pageNum)ph+='<span class="active">'+p+'</span>';else ph+='<a href="javascript:void(0)" onclick="loadUploadHistory('+p+')">'+p+'</a>';}
+                    if(pageNum<pages){ph+='<a href="javascript:void(0)" onclick="loadUploadHistory('+(pageNum+1)+')">下页→</a><a href="javascript:void(0)" onclick="loadUploadHistory('+pages+')">末页</a>';}
+                    else{ph+='<span class="disabled">下页→</span><span class="disabled">末页</span>';}
+                    ph+='</div>';
+                    document.getElementById('historyPagination').innerHTML=ph;document.getElementById('historyPagination').style.display='flex';
+                }else{document.getElementById('historyPagination').style.display='none';}
+            });
+        }
+
+        function showHistoryUnrecognized(batchId){
+            fetch(basePath + '/batches/'+batchId+'/unrecognized-columns')
+            .then(function(r){return r.json()})
+            .then(function(result){
+                if(!result.success){alert('加载失败');return;}
+                var cols=[];try{cols=JSON.parse(result.unrecognizedColumns||'[]');}catch(e){}
+                var html='<div class="unrecognized-table-wrap"><table class="table" style="font-size:13px;"><thead><tr><th>Sheet</th><th>列号</th><th>字段名</th><th>标准化后</th><th>样例值</th><th>处理方式</th></tr></thead><tbody>';
+                if(!cols||cols.length===0){html+='<tr><td colspan="6" class="empty-state">无扩展字段列</td></tr>';}
+                else{for(var i=0;i<cols.length;i++){
+                    var c=cols[i],s=c.sampleValues||[],st=s.join('、')||'-';
+                    html+='<tr><td>'+(c.sheetName||'Sheet1')+'</td><td>'+(c.columnLetter||'')+'</td>';
+                    html+='<td>'+esc(c.originalHeader)+'</td><td>'+esc(c.normalizedHeader)+'</td>';
+                    html+='<td>'+esc(st)+'</td><td><span class="badge badge-warning">extra_json</span></td></tr>';
+                }}
+                html+='</tbody></table></div>';
+                showInfoModal('扩展字段列详情 - 批次 #'+batchId,html);
+            });
+        }
+
+        function showHistoryBatchRecords(batchId){
+            document.getElementById('batchRecordsTitle').textContent = '批次 #' + batchId + ' 导入数据';
+            document.getElementById('batchRecordsModal').style.display = 'block';
+            document.getElementById('batchRecordsContent').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            fetch(basePath + '/batches/' + batchId + '/records')
+            .then(function(r){return r.json()})
+            .then(function(result){
+                if(!result.success||!result.records){document.getElementById('batchRecordsContent').innerHTML='<div class="empty-state">无数据</div>';return;}
+                var html='<table class="table" style="font-size:13px;"><thead><tr><th>子类</th><th>显示标题</th><th>行号</th><th>记录数据</th><th>扩展字段</th></tr></thead><tbody>';
+                for(var i=0;i<result.records.length;i++){
+                    var rec=result.records[i];
+                    html+='<tr><td>'+esc(rec.dataSubtype)+'</td><td>'+esc(rec.displayName)+'</td><td>'+(rec.rowIndex||'-')+'</td>';
+                    html+='<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;" title="'+esc(rec.recordJson)+'">'+esc(rec.recordJson)+'</td>';
+                    if(rec.extraJson&&rec.extraJson!=='{}'){html+='<td><button class="btn btn-warning btn-sm" onclick="showRecordExtraJson('+rec.id+')">查看</button></td>';}
+                    else{html+='<td>-</td>';}
+                    html+='</tr>';
+                }
+                html+='</tbody></table>';
+                document.getElementById('batchRecordsContent').innerHTML=html;
+            });
+        }
+
+        function deleteBatch(batchId){
+            if(!confirm('确定删除批次 #'+batchId+' 及其全部数据记录吗？')) return;
+            fetch(basePath + '/batches/'+batchId+'/delete',{method:'POST'})
+            .then(function(r){return r.json()})
+            .then(function(result){
+                if(result.success){loadUploadHistory(historyPage);}
+                else{alert(result.message||'删除失败');}
+            });
+        }
+
+        // ========== 通用 ==========
+        var infoModalContent='';
+        function showInfoModal(title,content){
+            infoModalContent=content;
+            var m=document.getElementById('batchRecordsModal');
+            document.getElementById('batchRecordsTitle').textContent=title;
+            document.getElementById('batchRecordsContent').innerHTML=content;
+            m.style.display='block';
+        }
+
+        function deleteRecord(id){
+            if(!confirm('确定删除？')) return;
+            fetch(basePath + '/delete/'+id,{method:'POST'})
+            .then(function(r){return r.json()})
+            .then(function(result){if(result.success)loadPreviewPage(currentPage);else alert(result.message||'删除失败');});
+        }
+
+        function esc(s){if(!s)return '';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+        // 点击外部关闭
+        window.addEventListener('click',function(e){
+            if(e.target===document.getElementById('importModal'))closeImportModal();
+            if(e.target===document.getElementById('previewModal'))closePreviewModal();
+            if(e.target===document.getElementById('extraJsonModal'))closeExtraJsonModal();
+            if(e.target===document.getElementById('uploadHistoryModal'))closeUploadHistoryModal();
+            if(e.target===document.getElementById('batchRecordsModal'))closeBatchRecordsModal();
+            if(e.target===document.getElementById('subtypeRowModal'))closeSubtypeRowModal();
+            if(e.target===document.getElementById('dataComplianceModal'))closeDataComplianceModal();
+        });
+    </script>
+</body>
+</html>

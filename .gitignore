@@ -1,0 +1,13 @@
+.DS_Store
+.idea/
+*.iml
+
+target/
+uploads/
+*.log
+
+.env
+.env.*
+!.env.example
+src/main/resources/application-local.yml
+

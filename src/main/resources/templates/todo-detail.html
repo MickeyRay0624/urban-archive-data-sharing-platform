@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>审批详情</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei'; background-color: #f5f7fa; }
+        .header { background: #4a5f70; color: white; padding: 15px 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .logo { font-size: 24px; font-weight: bold; }
+        .main-content { padding: 30px; max-width: 900px; margin: 0 auto; }
+        .detail-card { background: white; border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .detail-title { font-size: 24px; color: #2c3e50; margin-bottom: 20px; }
+        .detail-row { margin-bottom: 15px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+        .detail-label { font-weight: bold; color: #7f8c8d; display: inline-block; width: 120px; }
+        .detail-value { color: #2c3e50; }
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .status-pending { background-color: #fff3cd; color: #856404; }
+        .status-approved { background-color: #d4edda; color: #155724; }
+        .status-rejected { background-color: #f8d7da; color: #721c24; }
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; margin-right: 10px; }
+        .btn-success { background-color: #27ae60; color: white; }
+        .btn-danger { background-color: #e74c3c; color: white; }
+        .btn-secondary { background-color: #95a5a6; color: white; text-decoration: none; display: inline-block; }
+        .review-section { margin-top: 20px; padding-top: 20px; border-top: 2px solid #f0f0f0; }
+        textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">协同共享服务系统 - 内部审批详情</div>
+    </div>
+
+    <div class="main-content">
+        <div class="detail-card">
+            <div class="detail-title" th:text="${todoItem.processName}">审批事项</div>
+            <div class="detail-row">
+                <span class="detail-label">提交人：</span>
+                <span class="detail-value" th:text="${todoItem.uploader}">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">申请部门：</span>
+                <span class="detail-value" th:text="${todoItem.department}">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">提交时间：</span>
+                <span class="detail-value" th:text="${#temporals.format(todoItem.uploadTime, 'yyyy-MM-dd HH:mm:ss')}">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">审批说明：</span>
+                <span class="detail-value" th:text="${todoItem.processPurpose}">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">附件：</span>
+                <span class="detail-value" th:if="${todoItem.attachmentName}">
+                    <span th:text="${todoItem.attachmentName}">文件名</span>
+                    <button class="btn" style="background-color: #4a90e2; color: white; margin-left: 10px; font-size: 12px; padding: 6px 12px;" 
+                            th:onclick="'downloadAttachment(' + ${todoItem.id} + ')'">查看附件</button>
+                </span>
+                <span class="detail-value" th:unless="${todoItem.attachmentName}">无</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">状态：</span>
+                <span class="status-badge" 
+                      th:class="${todoItem.status.name() == 'PENDING'} ? 'status-badge status-pending' : (${todoItem.status.name() == 'APPROVED'} ? 'status-badge status-approved' : 'status-badge status-rejected')"
+                      th:text="${todoItem.status.displayName}">-</span>
+            </div>
+            
+            <div th:if="${todoItem.reviewer}" class="review-section">
+                <div class="detail-row">
+                    <span class="detail-label">审批人：</span>
+                    <span class="detail-value" th:text="${todoItem.reviewer}">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">审批时间：</span>
+                    <span class="detail-value" th:text="${#temporals.format(todoItem.reviewTime, 'yyyy-MM-dd HH:mm:ss')}">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">审批意见：</span>
+                    <span class="detail-value" th:text="${todoItem.reviewComment}">-</span>
+                </div>
+            </div>
+            
+            <div th:if="${todoItem.status.name() == 'PENDING'}" class="review-section">
+                <h3 style="margin-bottom: 15px;">审批操作</h3>
+                <textarea id="reviewComment" placeholder="请输入审批意见"></textarea>
+                <div style="margin-top: 15px;">
+                    <button class="btn btn-success" onclick="reviewTodo('approve')">通过</button>
+                    <button class="btn btn-danger" onclick="reviewTodo('reject')">拒绝</button>
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <a href="/todo-items" class="btn btn-secondary">返回列表</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function reviewTodo(status) {
+            const comment = document.getElementById('reviewComment').value;
+            if (!comment) {
+                alert('请输入审批意见');
+                return;
+            }
+            
+            fetch('/todo-items/review', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'id=[[${todoItem.id}]]&status=' + status + '&comment=' + encodeURIComponent(comment)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            });
+        }
+        
+        function downloadAttachment(id) {
+            window.open('/todo-items/download/' + id, '_blank');
+        }
+    </script>
+</body>
+</html>
+

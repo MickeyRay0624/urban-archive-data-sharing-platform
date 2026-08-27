@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.collaborative.sharing.mapper.ServiceComponentMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="ServiceComponentResultMap" type="com.collaborative.sharing.entity.ServiceComponent">
+        <id column="id" property="id"/>
+        <result column="service_name" property="serviceName"/>
+        <result column="service_code" property="serviceCode"/>
+        <result column="description" property="description"/>
+        <result column="version" property="version"/>
+        <result column="api_url" property="apiUrl"/>
+        <result column="owner_department" property="ownerDepartment"/>
+        <result column="security_level" property="securityLevel"/>
+        <result column="authorized_units" property="authorizedUnits"/>
+        <result column="config_json" property="configJson"/>
+        <result column="remark" property="remark"/>
+        <result column="status" property="status"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="compliance_status" property="complianceStatus"/>
+        <result column="compliance_apply_unit" property="complianceApplyUnit"/>
+        <result column="compliance_purpose" property="compliancePurpose"/>
+        <result column="compliance_data_scope" property="complianceDataScope"/>
+        <result column="compliance_remark" property="complianceRemark"/>
+        <result column="compliance_submit_time" property="complianceSubmitTime"/>
+        <result column="compliance_result" property="complianceResult"/>
+    </resultMap>
+
+    <select id="findAll" resultMap="ServiceComponentResultMap">
+        SELECT id, service_name, service_code, description, version, api_url, owner_department,
+               security_level, authorized_units, config_json, remark, status, created_at, updated_at,
+               compliance_status, compliance_apply_unit, compliance_purpose, compliance_data_scope,
+               compliance_remark, compliance_submit_time, compliance_result
+        FROM service_components
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="findById" parameterType="long" resultMap="ServiceComponentResultMap">
+        SELECT id, service_name, service_code, description, version, api_url, owner_department,
+               security_level, authorized_units, config_json, remark, status, created_at, updated_at,
+               compliance_status, compliance_apply_unit, compliance_purpose, compliance_data_scope,
+               compliance_remark, compliance_submit_time, compliance_result
+        FROM service_components
+        WHERE id = #{id}
+    </select>
+
+    <select id="findByStatus" parameterType="string" resultMap="ServiceComponentResultMap">
+        SELECT id, service_name, service_code, description, version, api_url, owner_department,
+               security_level, authorized_units, config_json, remark, status, created_at, updated_at,
+               compliance_status, compliance_apply_unit, compliance_purpose, compliance_data_scope,
+               compliance_remark, compliance_submit_time, compliance_result
+        FROM service_components
+        WHERE status = #{status}
+        ORDER BY created_at DESC
+    </select>
+
+    <insert id="insert" parameterType="com.collaborative.sharing.entity.ServiceComponent" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO service_components (service_name, service_code, description, version, api_url,
+                                         owner_department, security_level, authorized_units, config_json,
+                                         remark, status, created_at, updated_at,
+                                         compliance_status, compliance_apply_unit, compliance_purpose,
+                                         compliance_data_scope, compliance_remark, compliance_submit_time,
+                                         compliance_result)
+        VALUES (#{serviceName}, #{serviceCode}, #{description}, #{version}, #{apiUrl},
+                #{ownerDepartment}, #{securityLevel}, #{authorizedUnits}, #{configJson},
+                #{remark}, #{status}, #{createdAt}, #{updatedAt},
+                #{complianceStatus}, #{complianceApplyUnit}, #{compliancePurpose},
+                #{complianceDataScope}, #{complianceRemark}, #{complianceSubmitTime},
+                #{complianceResult})
+    </insert>
+
+    <update id="update" parameterType="com.collaborative.sharing.entity.ServiceComponent">
+        UPDATE service_components
+        SET service_name = #{serviceName},
+            service_code = #{serviceCode},
+            description = #{description},
+            version = #{version},
+            api_url = #{apiUrl},
+            owner_department = #{ownerDepartment},
+            security_level = #{securityLevel},
+            authorized_units = #{authorizedUnits},
+            config_json = #{configJson},
+            remark = #{remark},
+            status = #{status},
+            updated_at = #{updatedAt},
+            compliance_status = #{complianceStatus},
+            compliance_apply_unit = #{complianceApplyUnit},
+            compliance_purpose = #{compliancePurpose},
+            compliance_data_scope = #{complianceDataScope},
+            compliance_remark = #{complianceRemark},
+            compliance_submit_time = #{complianceSubmitTime},
+            compliance_result = #{complianceResult}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM service_components WHERE id = #{id}
+    </delete>
+
+    <update id="updateStatus">
+        UPDATE service_components
+        SET status = #{status}, updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateAuthorization">
+        UPDATE service_components
+        SET authorized_units = #{authorizedUnits}, status = 'AUTHORIZED', updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateConfig">
+        UPDATE service_components
+        SET config_json = #{configJson}, updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateComplianceStatus">
+        UPDATE service_components
+        SET compliance_status = #{complianceStatus}, updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <update id="submitComplianceReview">
+        UPDATE service_components
+        SET compliance_status = #{complianceStatus},
+            compliance_apply_unit = #{complianceApplyUnit},
+            compliance_purpose = #{compliancePurpose},
+            compliance_data_scope = #{complianceDataScope},
+            compliance_remark = #{complianceRemark},
+            compliance_submit_time = #{complianceSubmitTime},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateComplianceResult">
+        UPDATE service_components
+        SET compliance_status = #{complianceStatus},
+            compliance_result = #{complianceResult},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>

@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.collaborative.sharing.mapper.DataElementBusinessRecordMapper">
+
+    <resultMap id="RecordResultMap" type="com.collaborative.sharing.entity.DataElementBusinessRecord">
+        <id column="id" property="id"/>
+        <result column="batch_id" property="batchId"/>
+        <result column="data_type" property="dataType"/>
+        <result column="data_subtype" property="dataSubtype"/>
+        <result column="row_index" property="rowIndex"/>
+        <result column="project_id" property="projectId"/>
+        <result column="display_name" property="displayName"/>
+        <result column="record_json" property="recordJson"/>
+        <result column="extra_json" property="extraJson"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <resultMap id="SubtypeSummaryResultMap" type="com.collaborative.sharing.mapper.SubtypeSummary">
+        <result column="data_subtype" property="dataSubtype"/>
+        <result column="record_count" property="recordCount"/>
+        <result column="last_upload_time" property="lastUploadTime"/>
+        <result column="last_uploader" property="lastUploader"/>
+        <result column="last_file_name" property="lastFileName"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.collaborative.sharing.entity.DataElementBusinessRecord" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO data_element_business_record (batch_id, data_type, data_subtype, row_index, project_id,
+            display_name, record_json, extra_json, created_at, updated_at)
+        VALUES (#{batchId}, #{dataType}, #{dataSubtype}, #{rowIndex}, #{projectId},
+            #{displayName}, #{recordJson}, #{extraJson}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <insert id="batchInsert">
+        INSERT INTO data_element_business_record (batch_id, data_type, data_subtype, row_index, project_id,
+            display_name, record_json, extra_json, created_at, updated_at)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.batchId}, #{item.dataType}, #{item.dataSubtype}, #{item.rowIndex}, #{item.projectId},
+             #{item.displayName}, #{item.recordJson}, #{item.extraJson}, #{item.createdAt}, #{item.updatedAt})
+        </foreach>
+    </insert>
+
+    <select id="findById" parameterType="long" resultMap="RecordResultMap">
+        SELECT * FROM data_element_business_record WHERE id = #{id}
+    </select>
+
+    <select id="findByBatchId" parameterType="long" resultMap="RecordResultMap">
+        SELECT * FROM data_element_business_record WHERE batch_id = #{batchId} ORDER BY row_index
+    </select>
+
+    <select id="findByBatchIdAndDataType" resultMap="RecordResultMap">
+        SELECT * FROM data_element_business_record
+        WHERE batch_id = #{batchId}
+          AND data_type = #{dataType}
+        ORDER BY row_index
+    </select>
+
+    <select id="findBySubtype" resultMap="RecordResultMap">
+        SELECT * FROM data_element_business_record
+        WHERE data_subtype = #{subtype}
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="findBySubtypeAndDataType" resultMap="RecordResultMap">
+        SELECT * FROM data_element_business_record
+        WHERE data_type = #{dataType}
+          AND data_subtype = #{subtype}
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countBySubtype" resultType="int">
+        SELECT COUNT(*) FROM data_element_business_record WHERE data_subtype = #{subtype}
+    </select>
+
+    <select id="countBySubtypeAndDataType" resultType="int">
+        SELECT COUNT(*) FROM data_element_business_record
+        WHERE data_type = #{dataType}
+          AND data_subtype = #{subtype}
+    </select>
+
+    <select id="findBySubtypeAndKeyword" resultMap="RecordResultMap">
+        SELECT * FROM data_element_business_record
+        WHERE data_subtype = #{subtype}
+          AND display_name LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="findBySubtypeAndKeywordAndDataType" resultMap="RecordResultMap">
+        SELECT * FROM data_element_business_record
+        WHERE data_type = #{dataType}
+          AND data_subtype = #{subtype}
+          AND display_name LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countBySubtypeAndKeyword" resultType="int">
+        SELECT COUNT(*) FROM data_element_business_record
+        WHERE data_subtype = #{subtype}
+          AND display_name LIKE CONCAT('%', #{keyword}, '%')
+    </select>
+
+    <select id="countBySubtypeAndKeywordAndDataType" resultType="int">
+        SELECT COUNT(*) FROM data_element_business_record
+        WHERE data_type = #{dataType}
+          AND data_subtype = #{subtype}
+          AND display_name LIKE CONCAT('%', #{keyword}, '%')
+    </select>
+
+    <select id="findByConditions" resultMap="RecordResultMap">
+        SELECT r.* FROM data_element_business_record r
+        <where>
+            <if test="dataSubtype != null and dataSubtype != ''">
+                AND r.data_subtype = #{dataSubtype}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND r.display_name LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test="batchId != null">
+                AND r.batch_id = #{batchId}
+            </if>
+            <if test="uploadTimeStart != null and uploadTimeStart != ''">
+                AND r.created_at >= #{uploadTimeStart}
+            </if>
+            <if test="uploadTimeEnd != null and uploadTimeEnd != ''">
+                AND r.created_at &lt;= #{uploadTimeEnd}
+            </if>
+        </where>
+        ORDER BY r.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countByConditions" resultType="int">
+        SELECT COUNT(*) FROM data_element_business_record r
+        <where>
+            <if test="dataSubtype != null and dataSubtype != ''">
+                AND r.data_subtype = #{dataSubtype}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND r.display_name LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test="batchId != null">
+                AND r.batch_id = #{batchId}
+            </if>
+            <if test="uploadTimeStart != null and uploadTimeStart != ''">
+                AND r.created_at >= #{uploadTimeStart}
+            </if>
+            <if test="uploadTimeEnd != null and uploadTimeEnd != ''">
+                AND r.created_at &lt;= #{uploadTimeEnd}
+            </if>
+        </where>
+    </select>
+
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM data_element_business_record WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteByBatchId" parameterType="long">
+        DELETE FROM data_element_business_record WHERE batch_id = #{batchId}
+    </delete>
+
+    <select id="countByBatchId" parameterType="long" resultType="int">
+        SELECT COUNT(*) FROM data_element_business_record WHERE batch_id = #{batchId}
+    </select>
+
+    <select id="countByBatchIdAndDataType" resultType="int">
+        SELECT COUNT(*) FROM data_element_business_record
+        WHERE batch_id = #{batchId}
+          AND data_type = #{dataType}
+    </select>
+
+    <select id="getSubtypeSummaries" resultMap="SubtypeSummaryResultMap">
+        SELECT
+            r.data_subtype,
+            COUNT(*) AS record_count,
+            MAX(r.created_at) AS last_upload_time,
+            (SELECT b.uploader FROM data_element_upload_batch b
+             WHERE b.id = (
+                 SELECT r2.batch_id FROM data_element_business_record r2
+                 WHERE r2.data_subtype = r.data_subtype
+                 ORDER BY r2.created_at DESC LIMIT 1
+             )
+            ) AS last_uploader,
+            (SELECT b.original_file_name FROM data_element_upload_batch b
+             WHERE b.id = (
+                 SELECT r3.batch_id FROM data_element_business_record r3
+                 WHERE r3.data_subtype = r.data_subtype
+                 ORDER BY r3.created_at DESC LIMIT 1
+             )
+            ) AS last_file_name
+        FROM data_element_business_record r
+        GROUP BY r.data_subtype
+    </select>
+
+    <select id="getSubtypeSummariesByType" resultMap="SubtypeSummaryResultMap">
+        SELECT
+            r.data_subtype,
+            COUNT(*) AS record_count,
+            MAX(r.created_at) AS last_upload_time,
+            (SELECT b.uploader FROM data_element_upload_batch b
+             WHERE b.id = (
+                 SELECT r2.batch_id FROM data_element_business_record r2
+                 WHERE r2.data_type = #{dataType}
+                   AND r2.data_subtype = r.data_subtype
+                 ORDER BY r2.created_at DESC LIMIT 1
+             )
+            ) AS last_uploader,
+            (SELECT b.original_file_name FROM data_element_upload_batch b
+             WHERE b.id = (
+                 SELECT r3.batch_id FROM data_element_business_record r3
+                 WHERE r3.data_type = #{dataType}
+                   AND r3.data_subtype = r.data_subtype
+                 ORDER BY r3.created_at DESC LIMIT 1
+             )
+            ) AS last_file_name
+        FROM data_element_business_record r
+        WHERE r.data_type = #{dataType}
+        GROUP BY r.data_subtype
+    </select>
+
+    <select id="findAllForExport" resultMap="RecordResultMap">
+        SELECT * FROM data_element_business_record ORDER BY data_subtype, created_at
+    </select>
+
+    <select id="findAllForExportByType" resultMap="RecordResultMap">
+        SELECT * FROM data_element_business_record
+        WHERE data_type = #{dataType}
+        ORDER BY data_subtype, created_at
+    </select>
+</mapper>

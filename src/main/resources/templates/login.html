@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据要素×房屋建筑城建档案协同共享服务系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: #4a5f70;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        
+        body.with-bg-image {
+            position: relative;
+        }
+        
+        body.with-bg-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: -1;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            text-align: center;
+        }
+
+        .user-icon {
+            width: 80px;
+            height: 80px;
+            background: #2c3e50;
+            border-radius: 50%;
+            margin: 0 auto 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+            position: relative; /* 为密码可见性切换做准备 */
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4a5f70;
+        }
+
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            margin-right: 8px;
+        }
+
+        .forgot-password {
+            color: #4a5f70;
+            text-decoration: none;
+        }
+
+        .forgot-password:hover {
+            text-decoration: underline;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            background: #4a5f70;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(102, 126, 234, 0.4);
+        }
+
+        .login-btn:hover {
+            background: #5a6fd8;
+        }
+
+        .login-btn:active {
+            transform: scale(0.99);
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .login-btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 15px;
+            cursor: pointer;
+            user-select: none;
+        }
+    </style>
+</head>
+<body th:classappend="${backgroundImage != null and backgroundImage != ''} ? 'with-bg-image' : ''" 
+      th:style="${backgroundImage != null and backgroundImage != ''} ? |background-image: url(/uploads/${backgroundImage})| : ''">
+<div class="login-container">
+    <div class="user-icon">👤</div>
+
+    <form th:action="@{/login}" method="post" id="loginForm">
+
+        <!-- 用户名 -->
+        <div class="form-group">
+            <input type="text" name="username" id="username" placeholder="请输入用户名" required autocomplete="username">
+        </div>
+
+        <!-- 密码（带可见性切换） -->
+        <div class="form-group">
+            <input type="password" name="password" id="password" placeholder="请输入密码" required autocomplete="current-password">
+            <span class="toggle-password" onclick="togglePassword()">👁️</span>
+        </div>
+
+        <div class="form-options">
+            <div class="checkbox-group">
+                <input type="checkbox" id="remember" name="remember-me">
+                <label for="remember">自动登录</label>
+            </div>
+            <a href="#" class="forgot-password">忘记密码</a>
+        </div>
+
+        <!-- 登录按钮（提交时禁用防重复） -->
+        <button type="submit" class="login-btn" id="loginBtn">登录</button>
+
+        <!-- 错误提示（由后端Model动态传递） -->
+        <div th:if="${error}" class="error-message" th:text="${error}">
+            <!-- 错误内容动态填充 -->
+        </div>
+
+        <!-- 退出提示 -->
+        <div th:if="${logout}" class="error-message" style="color: #27ae60;" th:text="${param.logout[0]}">
+            <!-- 默认显示：您已成功退出登录 -->
+        </div>
+    </form>
+</div>
+
+<script>
+    // 切换密码可见性
+    function togglePassword() {
+        const passwordInput = document.getElementById('password');
+        const isPassword = passwordInput.type === 'password';
+        passwordInput.type = isPassword ? 'text' : 'password';
+    }
+
+    // 表单提交后禁用按钮防重复
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        const btn = document.getElementById('loginBtn');
+        btn.disabled = true;
+        btn.textContent = '登录中...';
+        // 不阻止默认提交行为（无需e.preventDefault()）
+    });
+</script>
+</body>
+</html>

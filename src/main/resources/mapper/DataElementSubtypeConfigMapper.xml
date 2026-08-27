@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.collaborative.sharing.mapper.DataElementSubtypeConfigMapper">
+
+    <resultMap id="SubtypeConfigResultMap" type="com.collaborative.sharing.entity.DataElementSubtypeConfig">
+        <id column="id" property="id"/>
+        <result column="data_type" property="dataType"/>
+        <result column="data_subtype" property="dataSubtype"/>
+        <result column="table_name" property="tableName"/>
+        <result column="field_count" property="fieldCount"/>
+        <result column="is_builtin" property="builtin"/>
+        <result column="is_visible" property="visible"/>
+        <result column="sort_order" property="sortOrder"/>
+        <result column="self_check_status" property="selfCheckStatus"/>
+        <result column="security_check_status" property="securityCheckStatus"/>
+        <result column="compliance_result" property="complianceResult"/>
+        <result column="self_check_time" property="selfCheckTime"/>
+        <result column="security_check_time" property="securityCheckTime"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <select id="findAll" resultMap="SubtypeConfigResultMap">
+        SELECT * FROM data_element_subtype_config ORDER BY sort_order ASC, id ASC
+    </select>
+
+    <select id="findVisible" resultMap="SubtypeConfigResultMap">
+        SELECT * FROM data_element_subtype_config
+        WHERE is_visible = 1
+          AND data_type = '业务数据'
+        ORDER BY sort_order ASC, id ASC
+    </select>
+
+    <select id="findVisibleByType" resultMap="SubtypeConfigResultMap">
+        SELECT * FROM data_element_subtype_config
+        WHERE is_visible = 1
+          AND data_type = #{dataType}
+        ORDER BY sort_order ASC, id ASC
+    </select>
+
+    <select id="findById" parameterType="long" resultMap="SubtypeConfigResultMap">
+        SELECT * FROM data_element_subtype_config WHERE id = #{id}
+    </select>
+
+    <select id="findBySubtype" parameterType="string" resultMap="SubtypeConfigResultMap">
+        SELECT * FROM data_element_subtype_config
+        WHERE data_type = '业务数据'
+          AND data_subtype = #{dataSubtype}
+    </select>
+
+    <select id="findByTypeAndSubtype" resultMap="SubtypeConfigResultMap">
+        SELECT * FROM data_element_subtype_config
+        WHERE data_type = #{dataType}
+          AND data_subtype = #{dataSubtype}
+    </select>
+
+    <insert id="insert" parameterType="com.collaborative.sharing.entity.DataElementSubtypeConfig" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO data_element_subtype_config (
+            data_type, data_subtype, table_name, field_count, is_builtin, is_visible, sort_order,
+            self_check_status, security_check_status, compliance_result,
+            self_check_time, security_check_time, created_at, updated_at
+        )
+        VALUES (
+            #{dataType}, #{dataSubtype}, #{tableName}, #{fieldCount}, #{builtin}, #{visible}, #{sortOrder},
+            #{selfCheckStatus}, #{securityCheckStatus}, #{complianceResult},
+            #{selfCheckTime}, #{securityCheckTime}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <update id="update" parameterType="com.collaborative.sharing.entity.DataElementSubtypeConfig">
+        UPDATE data_element_subtype_config
+        SET data_type = #{dataType},
+            data_subtype = #{dataSubtype},
+            table_name = #{tableName},
+            field_count = #{fieldCount},
+            is_builtin = #{builtin},
+            is_visible = #{visible},
+            sort_order = #{sortOrder},
+            self_check_status = #{selfCheckStatus},
+            security_check_status = #{securityCheckStatus},
+            compliance_result = #{complianceResult},
+            self_check_time = #{selfCheckTime},
+            security_check_time = #{securityCheckTime},
+            updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM data_element_subtype_config WHERE id = #{id}
+    </delete>
+
+    <update id="hideById">
+        UPDATE data_element_subtype_config
+        SET is_visible = 0,
+            updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateSelfCheckStatus">
+        UPDATE data_element_subtype_config
+        SET self_check_status = #{selfCheckStatus},
+            compliance_result = #{complianceResult},
+            self_check_time = #{selfCheckTime},
+            updated_at = #{updatedAt}
+        WHERE data_type = '业务数据'
+          AND data_subtype = #{dataSubtype}
+    </update>
+
+    <update id="updateSelfCheckStatusByType">
+        UPDATE data_element_subtype_config
+        SET self_check_status = #{selfCheckStatus},
+            compliance_result = #{complianceResult},
+            self_check_time = #{selfCheckTime},
+            updated_at = #{updatedAt}
+        WHERE data_type = #{dataType}
+          AND data_subtype = #{dataSubtype}
+    </update>
+
+    <update id="updateSecurityCheckStatus">
+        UPDATE data_element_subtype_config
+        SET security_check_status = #{securityCheckStatus},
+            compliance_result = #{complianceResult},
+            security_check_time = #{securityCheckTime},
+            updated_at = #{updatedAt}
+        WHERE data_type = '业务数据'
+          AND data_subtype = #{dataSubtype}
+    </update>
+
+    <update id="updateSecurityCheckStatusByType">
+        UPDATE data_element_subtype_config
+        SET security_check_status = #{securityCheckStatus},
+            compliance_result = #{complianceResult},
+            security_check_time = #{securityCheckTime},
+            updated_at = #{updatedAt}
+        WHERE data_type = #{dataType}
+          AND data_subtype = #{dataSubtype}
+    </update>
+
+    <update id="resetComplianceStatusForSubtypes">
+        UPDATE data_element_subtype_config
+        SET self_check_status = 'NOT_SUBMITTED',
+            security_check_status = 'NOT_SUBMITTED',
+            compliance_result = #{complianceResult},
+            self_check_time = NULL,
+            security_check_time = NULL,
+            updated_at = #{updatedAt}
+        WHERE data_type = '业务数据'
+          AND data_subtype IN
+        <foreach collection="subtypes" item="subtype" open="(" separator="," close=")">
+            #{subtype}
+        </foreach>
+    </update>
+
+    <update id="resetComplianceStatusForSubtypesByType">
+        UPDATE data_element_subtype_config
+        SET self_check_status = 'NOT_SUBMITTED',
+            security_check_status = 'NOT_SUBMITTED',
+            compliance_result = #{complianceResult},
+            self_check_time = NULL,
+            security_check_time = NULL,
+            updated_at = #{updatedAt}
+        WHERE data_type = #{dataType}
+          AND data_subtype IN
+        <foreach collection="subtypes" item="subtype" open="(" separator="," close=")">
+            #{subtype}
+        </foreach>
+    </update>
+
+    <select id="findMaxSortOrder" resultType="int">
+        SELECT COALESCE(MAX(sort_order), 0) FROM data_element_subtype_config
+        WHERE data_type = '业务数据'
+    </select>
+
+    <select id="findMaxSortOrderByType" resultType="int">
+        SELECT COALESCE(MAX(sort_order), 0) FROM data_element_subtype_config
+        WHERE data_type = #{dataType}
+    </select>
+</mapper>
